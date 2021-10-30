@@ -8,6 +8,10 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 import java.io.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.stream.Collectors;
 
 public class UserController implements HttpHandler {
@@ -40,10 +44,31 @@ public class UserController implements HttpHandler {
         //ObjectMapper erstellen, der im JSON nicht auf Groß/Kleinschreibung achtet
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
-        String json2 = "{ \"username\" : \"username\", \"password\" : \"user1\" }";
+        //String json2 = "{ \"username\" : \"username\", \"password\" : \"user1\" }";
         User user = objectMapper.readValue(json, User.class);
         System.out.println("----------------------------");
-        System.out.println("USER: "+ user.getUsername() + "; Password: " + user.getPassword());
+        System.out.println("ID: " + user.getId() +"; USERNAME: " + user.getUsername() + "; PASSWORD: " + user.getPassword());
         System.out.println("----------------------------");
+
+
+        //User in die Datenbank eintragen
+        try {
+            Connection connection = DriverManager.getConnection(
+                    "jdbc:postgresql://localhost:5432/mtcg",
+                    "basem",
+                    "");
+
+            PreparedStatement create = connection.prepareStatement(
+                    "INSERT INTO mtcg.public.user (id, username, password) " +
+                            "VALUES (?,?,?);"
+            );
+
+            create.setString(1, user.getId());
+            create.setString(2, user.getUsername());
+            create.setString(3, user.getPassword());
+            create.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
