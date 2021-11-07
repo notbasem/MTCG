@@ -16,7 +16,9 @@ public class Server {
         //Serverport
         HttpServer server = HttpServer.create(new InetSocketAddress(10001), 0);
         server.createContext("/api/users", new UserController());
+        server.createContext("/api/sessions", new UserController());
         server.start();
+        System.out.println("Server started, listening on 127.0.0.1:10001");
     }
 }
 

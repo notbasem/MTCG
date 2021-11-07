@@ -1,5 +1,6 @@
 package com.company.Server.controller;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.company.Server.models.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -8,10 +9,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 import java.io.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.stream.Collectors;
 
 public class UserController implements HttpHandler {
@@ -20,36 +18,31 @@ public class UserController implements HttpHandler {
         if(exchange.getRequestMethod().equals("POST")) {
             //Request in String umwandeln
             InputStream res = exchange.getRequestBody();
-
             String json = (new BufferedReader(new InputStreamReader(res))
                     .lines().collect(Collectors.joining("\r\n")));
 
-            //CREATE-Methode aufrufen
-            create(json);
-
-            //Response an den Client schicken
-            String respText = "{ \"status\" : \"200\" }";
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
-            exchange.sendResponseHeaders(200, respText.getBytes().length);
-            OutputStream output = exchange.getResponseBody();
-            output.write(respText.getBytes());
-            output.flush();
+            //Registrierung, wenn POST-Request auf /api/users gemacht wird
+            if(exchange.getRequestURI().toString().equalsIgnoreCase("/api/users")) {
+                //CREATE-Methode aufrufen und Response an den User liefern
+                create(exchange, json);
+            }
+            //Login, wenn API-Request auf /api/sessions gemacht wird
+            else if(exchange.getRequestURI().toString().equalsIgnoreCase("/api/sessions")) {
+                //Login-Methode aufrufen und Response an den User liefern
+                login(exchange, json);
+            }
         } else {
             exchange.sendResponseHeaders(405, -1);// 405 Method Not Allowed
         }
     }
 
-    public void create(String json) throws JsonProcessingException {
-        System.out.println("Create-Methode-JSON: \n" + json);
+    public String create(HttpExchange exchange, String json) throws JsonProcessingException {
+        String respText = "";
+
         //ObjectMapper erstellen, der im JSON nicht auf Groß/Kleinschreibung achtet
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
-        //String json2 = "{ \"username\" : \"username\", \"password\" : \"user1\" }";
         User user = objectMapper.readValue(json, User.class);
-        System.out.println("----------------------------");
-        System.out.println("ID: " + user.getId() +"; USERNAME: " + user.getUsername() + "; PASSWORD: " + user.getPassword());
-        System.out.println("----------------------------");
-
 
         //User in die Datenbank eintragen
         try {
@@ -58,17 +51,94 @@ public class UserController implements HttpHandler {
                     "basem",
                     "");
 
-            PreparedStatement create = connection.prepareStatement(
-                    "INSERT INTO mtcg.public.user (id, username, password) " +
-                            "VALUES (?,?,?);"
+            //Überprüfen, ob der username bereits vorhanden ist
+            PreparedStatement read = connection.prepareStatement(
+                    "SELECT username FROM mtcg.public.user WHERE username = ?"
             );
+            read.setString(1, user.getUsername());
+            ResultSet rs = read.executeQuery();
+            //Wenn username nicht vorhanden ist, User erstellen
+            if (!rs.next()) {
+                PreparedStatement create = connection.prepareStatement(
+                        "INSERT INTO mtcg.public.user (id, username, password) " +
+                                "VALUES (?,?,?);"
+                );
 
-            create.setString(1, user.getId());
-            create.setString(2, user.getUsername());
-            create.setString(3, user.getPassword());
-            create.executeUpdate();
-        } catch (SQLException e) {
+                //Password hash erstellen mit: https://github.com/patrickfav/bcrypt
+                user.setPassword(BCrypt.withDefaults().hashToString(12, user.getPassword().toCharArray()));
+
+                create.setString(1, user.getId());
+                create.setString(2, user.getUsername());
+                create.setString(3, user.getPassword());
+                create.executeUpdate();
+                respText = "{ \"message\" : \"User erstellt\" }";
+                sendResponse(exchange, 200, respText);
+
+                System.out.println("Registrierung erfolgreich:");
+                System.out.println("Username: + " + user.getUsername() + "Password: " + user.getPassword());
+            } else {
+                respText = "{ \"message\" : \"Username bereits vorhanden\" }";
+                sendResponse(exchange, 409, respText);
+                System.out.println("Registrierung fehlgeschlagen.");
+            }
+            rs.close();
+            read.close();
+        } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
+        return respText;
+    }
+
+    public String login(HttpExchange exchange, String json) throws JsonProcessingException {
+        String respText = "";
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+        User user = objectMapper.readValue(json, User.class);
+
+        try {
+            Connection connection = DriverManager.getConnection(
+                    "jdbc:postgresql://localhost:5432/mtcg",
+                    "basem",
+                    "");
+
+            //Überprüfen, ob der username bereits vorhanden ist
+            PreparedStatement read = connection.prepareStatement(
+                    "SELECT * FROM mtcg.public.user WHERE username = ?"
+            );
+            read.setString(1, user.getUsername());
+            //Passwort hash des Users zum vergleichen holen
+            ResultSet rs = read.executeQuery();
+            String hash = null;
+            while (rs.next()) {
+                hash = rs.getString("password");
+            }
+            rs.close();
+            read.close();
+
+            //Passwörter miteinander vergleichen
+            BCrypt.Result result = BCrypt.verifyer().verify(user.getPassword().toCharArray(), hash);
+
+            if (result.verified) {
+                String userJson = objectMapper.writeValueAsString(user);
+                respText = "{ \"message\" : \"Login erfolgreich\", \"user\" : " + userJson + " }";
+                sendResponse(exchange, 200, respText);
+                System.out.println("Login erfolgreich");
+            } else {
+                respText = "{ \"message\" : \"Username und Passwort stimmen nicht überein\" }";
+                sendResponse(exchange, 401, respText);
+                System.out.println("Login fehlgeschlagen");
+            }
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+        }
+        return respText;
+    }
+
+    private void sendResponse (HttpExchange exchange, int status, String respText) throws IOException {
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
+        exchange.sendResponseHeaders(status, respText.getBytes().length);
+        OutputStream output = exchange.getResponseBody();
+        output.write(respText.getBytes());
+        output.flush();
     }
 }
