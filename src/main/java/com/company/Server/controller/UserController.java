@@ -75,7 +75,7 @@ public class UserController implements HttpHandler {
                 sendResponse(exchange, 200, respText);
 
                 System.out.println("Registrierung erfolgreich:");
-                System.out.println("Username: + " + user.getUsername() + "Password: " + user.getPassword());
+                System.out.println("Username: " + user.getUsername() + " Password: " + user.getPassword());
             } else {
                 respText = "{ \"message\" : \"Username bereits vorhanden\" }";
                 sendResponse(exchange, 409, respText);
