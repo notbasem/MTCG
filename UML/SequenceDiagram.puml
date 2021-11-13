@@ -1,0 +1,16 @@
+@startuml
+autonumber
+loop 100 times
+    Player1 -> Battlefield: A random card from the deck is chosen.
+    Battlefield <- Player2: A random card from the deck is chosen.
+    group Fight between 2 cards
+        alt damage of Card1 is higher
+            Battlefield -> Player1: Player1 gets Card2
+        else damage of Card2 is higher
+            Battlefield -> Player2: Player2 gets Card1
+        else damage of both Cards is equal
+            Battlefield -> Player1: Card1 returns to Player1
+            Battlefield -> Player2: Card2 returns to Player2
+    end
+end
+@enduml
