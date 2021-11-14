@@ -60,8 +60,8 @@ public class UserController implements HttpHandler {
             //Wenn username nicht vorhanden ist, User erstellen
             if (!rs.next()) {
                 PreparedStatement create = connection.prepareStatement(
-                        "INSERT INTO mtcg.public.user (id, username, password) " +
-                                "VALUES (?,?,?);"
+                        "INSERT INTO mtcg.public.user (id, username, password, token) " +
+                                "VALUES (?,?,?, ?);"
                 );
 
                 //Password hash erstellen mit: https://github.com/patrickfav/bcrypt
@@ -70,12 +70,13 @@ public class UserController implements HttpHandler {
                 create.setString(1, user.getId());
                 create.setString(2, user.getUsername());
                 create.setString(3, user.getPassword());
+                create.setString(4, user.getToken());
                 create.executeUpdate();
                 respText = "{ \"message\" : \"User erstellt\" }";
                 sendResponse(exchange, 200, respText);
 
                 System.out.println("Registrierung erfolgreich:");
-                System.out.println("Username: " + user.getUsername() + " Password: " + user.getPassword());
+                System.out.println("Username: " + user.getUsername() + " | Password: " + user.getPassword() + " | Token: " + user.getToken());
             } else {
                 respText = "{ \"message\" : \"Username bereits vorhanden\" }";
                 sendResponse(exchange, 409, respText);

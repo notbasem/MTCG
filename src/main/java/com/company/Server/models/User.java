@@ -12,12 +12,14 @@ public class User {
     private String id;
     private String username;
     private String password;
+    private String token;
 
     @JsonCreator
     public User(@JsonProperty("username") String username, @JsonProperty("password") String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.id = UUID.randomUUID().toString();
         this.username = username.toLowerCase();
         this.password = password;
+        this.token = this.username+"-mtcgToken";
     }
 
     public String getId() {
@@ -44,5 +46,11 @@ public class User {
         return password;
     }
 
+    public String getToken() {
+        return token;
+    }
 
+    public void setToken(String token) {
+        this.token = token;
+    }
 }
