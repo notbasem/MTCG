@@ -1,6 +1,8 @@
 package com.company.Server.controller;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
+import com.company.Server.DatabaseAccess.UserAccess;
+import com.company.Server.models.Response;
 import com.company.Server.models.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -36,110 +38,64 @@ public class UserController implements HttpHandler {
         }
     }
 
-    public String create(HttpExchange exchange, String json) throws JsonProcessingException {
-        String respText = "";
+    /**
+     * CREATE-METHODE
+     * @param exchange
+     * @param json
+     * @return
+     * @throws JsonProcessingException
+     */
 
+    private void create(HttpExchange exchange, String json) throws IOException {
         //ObjectMapper erstellen, der im JSON nicht auf Groß/Kleinschreibung achtet
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
         User user = objectMapper.readValue(json, User.class);
 
         //User in die Datenbank eintragen
+        Response response = null;
         try {
-            Connection connection = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5432/mtcg",
-                    "basem",
-                    "");
-
-            //Überprüfen, ob der username bereits vorhanden ist
-            PreparedStatement read = connection.prepareStatement(
-                    "SELECT username FROM mtcg.public.user WHERE username = ?"
-            );
-            read.setString(1, user.getUsername());
-            ResultSet rs = read.executeQuery();
-            //Wenn username nicht vorhanden ist, User erstellen
-            if (!rs.next()) {
-                PreparedStatement create = connection.prepareStatement(
-                        "INSERT INTO mtcg.public.user (id, username, password, token) " +
-                                "VALUES (?,?,?, ?);"
-                );
-
-                //Password hash erstellen mit: https://github.com/patrickfav/bcrypt
-                user.setPassword(BCrypt.withDefaults().hashToString(12, user.getPassword().toCharArray()));
-
-                create.setString(1, user.getId());
-                create.setString(2, user.getUsername());
-                create.setString(3, user.getPassword());
-                create.setString(4, user.getToken());
-                create.executeUpdate();
-                respText = "{ \"message\" : \"User erstellt\" }";
-                sendResponse(exchange, 200, respText);
-
-                System.out.println("Registrierung erfolgreich:");
-                System.out.println("Username: " + user.getUsername() + " | Password: " + user.getPassword() + " | Token: " + user.getToken());
-            } else {
-                respText = "{ \"message\" : \"Username bereits vorhanden\" }";
-                sendResponse(exchange, 409, respText);
-                System.out.println("Registrierung fehlgeschlagen.");
-            }
-            rs.close();
-            read.close();
-        } catch (SQLException | IOException e) {
+            UserAccess userAccess = new UserAccess();
+            response = userAccess.createUser(user);
+        } catch (SQLException e) {
             e.printStackTrace();
         }
-        return respText;
+        sendResponse(exchange, response);
     }
 
-    public String login(HttpExchange exchange, String json) throws JsonProcessingException {
-        String respText = "";
+    /**
+     * LOGIN-METHODE
+     * @param exchange
+     * @param json
+     * @return
+     * @throws JsonProcessingException
+     */
+    private void login(HttpExchange exchange, String json) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
         User user = objectMapper.readValue(json, User.class);
 
+        Response response = null;
         try {
-            Connection connection = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5432/mtcg",
-                    "basem",
-                    "");
-
-            //Überprüfen, ob der username bereits vorhanden ist
-            PreparedStatement read = connection.prepareStatement(
-                    "SELECT * FROM mtcg.public.user WHERE username = ?"
-            );
-            read.setString(1, user.getUsername());
-            //Passwort hash des Users zum vergleichen holen
-            ResultSet rs = read.executeQuery();
-            String hash = null;
-            while (rs.next()) {
-                hash = rs.getString("password");
-            }
-            rs.close();
-            read.close();
-
-            //Passwörter miteinander vergleichen
-            BCrypt.Result result = BCrypt.verifyer().verify(user.getPassword().toCharArray(), hash);
-
-            if (result.verified) {
-                String userJson = objectMapper.writeValueAsString(user);
-                respText = "{ \"message\" : \"Login erfolgreich\", \"user\" : " + userJson + " }";
-                sendResponse(exchange, 200, respText);
-                System.out.println("Login erfolgreich");
-            } else {
-                respText = "{ \"message\" : \"Username und Passwort stimmen nicht überein\" }";
-                sendResponse(exchange, 401, respText);
-                System.out.println("Login fehlgeschlagen");
-            }
-        } catch (SQLException | IOException e) {
+            UserAccess userAccess = new UserAccess();
+            response = userAccess.loginUser(user);
+        } catch (SQLException e) {
             e.printStackTrace();
         }
-        return respText;
+        sendResponse(exchange, response);
     }
 
-    private void sendResponse (HttpExchange exchange, int status, String respText) throws IOException {
+    /**
+     * sendResponse-METHODE
+     * @param exchange
+     * @param response
+     * @throws IOException
+     */
+    private void sendResponse (HttpExchange exchange, Response response) throws IOException {
         exchange.getResponseHeaders().set("Content-Type", "application/json");
-        exchange.sendResponseHeaders(status, respText.getBytes().length);
+        exchange.sendResponseHeaders(response.getStatus(), response.getResponse().getBytes().length);
         OutputStream output = exchange.getResponseBody();
-        output.write(respText.getBytes());
+        output.write(response.getResponse().getBytes());
         output.flush();
     }
 }
