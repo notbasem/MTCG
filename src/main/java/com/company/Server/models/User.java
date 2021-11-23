@@ -2,6 +2,7 @@ package com.company.Server.models;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.security.NoSuchAlgorithmException;
@@ -42,6 +43,7 @@ public class User {
         this.password = password;
     }
 
+    @JsonIgnore
     public String getPassword() {
         return password;
     }
