@@ -1,6 +1,5 @@
 package com.company.Server.controller;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.company.Server.DatabaseAccess.UserAccess;
 import com.company.Server.models.Response;
 import com.company.Server.models.User;
@@ -19,9 +18,7 @@ public class UserController implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         if(exchange.getRequestMethod().equals("POST")) {
             //Request in String umwandeln
-            InputStream res = exchange.getRequestBody();
-            String json = (new BufferedReader(new InputStreamReader(res))
-                    .lines().collect(Collectors.joining("\r\n")));
+            String json = requestToJSON(exchange);
 
             //Registrierung, wenn POST-Request auf /api/users gemacht wird
             if(exchange.getRequestURI().toString().equalsIgnoreCase("/api/users")) {
@@ -60,7 +57,7 @@ public class UserController implements HttpHandler {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        sendResponse(exchange, response);
+        response.sendResponse(exchange);
     }
 
     /**
@@ -82,20 +79,12 @@ public class UserController implements HttpHandler {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        sendResponse(exchange, response);
+        response.sendResponse(exchange);
     }
 
-    /**
-     * sendResponse-METHODE
-     * @param exchange
-     * @param response
-     * @throws IOException
-     */
-    private void sendResponse (HttpExchange exchange, Response response) throws IOException {
-        exchange.getResponseHeaders().set("Content-Type", "application/json");
-        exchange.sendResponseHeaders(response.getStatus(), response.getResponse().getBytes().length);
-        OutputStream output = exchange.getResponseBody();
-        output.write(response.getResponse().getBytes());
-        output.flush();
+    private String requestToJSON(HttpExchange exchange) {
+        String json = (new BufferedReader(new InputStreamReader(exchange.getRequestBody()))
+                .lines().collect(Collectors.joining("\r\n")));
+        return json;
     }
 }
