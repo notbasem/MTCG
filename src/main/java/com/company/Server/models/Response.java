@@ -1,6 +1,6 @@
 package com.company.Server.models;
 
-import com.sun.net.httpserver.HttpExchange;
+import com.company.Server.ClientHandler;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -30,11 +30,23 @@ public class Response {
         this.response = response;
     }
 
-    public void sendResponse(HttpExchange exchange) throws IOException {
-        exchange.getResponseHeaders().set("Content-Type", "application/json");
-        exchange.sendResponseHeaders(status, response.getBytes().length);
-        OutputStream output = exchange.getResponseBody();
-        output.write(response.getBytes());
-        output.flush();
+    public void sendResponseHeaders(ClientHandler client) throws IOException {
+        System.out.println("SEND RESPONSE");
+        OutputStream clientOutput = client.getClient().getOutputStream();
+        clientOutput.write(("HTTP/1.1 " + status + "\r\n").getBytes());
+        clientOutput.write(("Content-Length: -1").getBytes());
+        clientOutput.flush();
+        client.getClient().close();
+    }
+
+    public void sendResponse(ClientHandler client) throws IOException {
+        System.out.println("RESPONSE: " + this.response.length() + ", " + this.response);
+        OutputStream clientOutput = client.getClient().getOutputStream();
+        clientOutput.write(("HTTP/1.1 " + status + "\r\n").getBytes());
+        clientOutput.write(("Content-Length: " + this.response.getBytes().length + "\r\n").getBytes());
+        clientOutput.write(("Content-Type: application/json" + "\r\n\r\n").getBytes());
+        clientOutput.write((this.response).getBytes());
+        clientOutput.flush();
+        client.getClient().close();
     }
 }

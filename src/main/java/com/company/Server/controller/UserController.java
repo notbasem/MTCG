@@ -1,53 +1,49 @@
 package com.company.Server.controller;
 
+import com.company.Server.ClientHandler;
 import com.company.Server.DatabaseAccess.UserAccess;
 import com.company.Server.models.Response;
 import com.company.Server.models.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
 import java.io.*;
 import java.sql.*;
-import java.util.stream.Collectors;
 
-public class UserController implements HttpHandler {
-    @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        if(exchange.getRequestMethod().equals("POST")) {
+public class UserController {
+    public void handle(ClientHandler client) throws IOException {
+        if(client.getMethod().equals("POST")) {
             //Request in String umwandeln
-            String json = requestToJSON(exchange);
+            System.out.println(client.getBody());
 
             //Registrierung, wenn POST-Request auf /api/users gemacht wird
-            if(exchange.getRequestURI().toString().equalsIgnoreCase("/api/users")) {
+            if(client.getUri().toString().equalsIgnoreCase("/api/users")) {
                 //CREATE-Methode aufrufen und Response an den User liefern
-                create(exchange, json);
+                create(client);
             }
             //Login, wenn API-Request auf /api/sessions gemacht wird
-            else if(exchange.getRequestURI().toString().equalsIgnoreCase("/api/sessions")) {
+            else if(client.getUri().toString().equalsIgnoreCase("/api/sessions")) {
                 //Login-Methode aufrufen und Response an den User liefern
-                login(exchange, json);
+                login(client);
             }
         } else {
-            exchange.sendResponseHeaders(405, -1);// 405 Method Not Allowed
+            new Response(405, null).sendResponseHeaders(client);// 405 Method Not Allowed
         }
     }
 
     /**
      * CREATE-METHODE
-     * @param exchange
-     * @param json
+     * @param client
      * @return
      * @throws JsonProcessingException
      */
 
-    private void create(HttpExchange exchange, String json) throws IOException {
+    private void create(ClientHandler client) throws IOException {
         //ObjectMapper erstellen, der im JSON nicht auf Groß/Kleinschreibung achtet
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
-        User user = objectMapper.readValue(json, User.class);
+        User user = objectMapper.readValue(client.getBody(), User.class);
 
         //User in die Datenbank eintragen
         Response response = null;
@@ -57,20 +53,19 @@ public class UserController implements HttpHandler {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        response.sendResponse(exchange);
+        response.sendResponse(client);
     }
 
     /**
      * LOGIN-METHODE
-     * @param exchange
-     * @param json
+     * @param client
      * @return
      * @throws JsonProcessingException
      */
-    private void login(HttpExchange exchange, String json) throws IOException {
+    private void login(ClientHandler client) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
-        User user = objectMapper.readValue(json, User.class);
+        User user = objectMapper.readValue(client.getBody(), User.class);
 
         Response response = null;
         try {
@@ -79,12 +74,6 @@ public class UserController implements HttpHandler {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        response.sendResponse(exchange);
-    }
-
-    private String requestToJSON(HttpExchange exchange) {
-        String json = (new BufferedReader(new InputStreamReader(exchange.getRequestBody()))
-                .lines().collect(Collectors.joining("\r\n")));
-        return json;
+        response.sendResponse(client);
     }
 }

@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.sql.*;
 
 public class UserAccess extends DBAccess {
@@ -39,7 +38,7 @@ public class UserAccess extends DBAccess {
 
             System.out.println("Registrierung erfolgreich:");
             System.out.println("Username: " + user.getUsername() + " | Password: " + user.getPassword() + " | Token: " + user.getToken());
-            return new Response(200, "{ \"message\" : \"User erstellt\" }");
+            return new Response(200, "{ \"message\": \"User erstellt\" }");
         } else {
             //sendResponse(exchange, 409, respText);
             System.out.println("Registrierung fehlgeschlagen.");
@@ -47,7 +46,7 @@ public class UserAccess extends DBAccess {
         rs.close();
         read.close();
 
-        return new Response(409, "{ \"message\" : \"Username bereits vorhanden\" }");
+        return new Response(409, "{ \"message\": \"Username bereits vorhanden\" }");
     }
 
     public Response loginUser(User user) throws SQLException, JsonProcessingException {
@@ -74,10 +73,10 @@ public class UserAccess extends DBAccess {
             String userJson = objectMapper.writeValueAsString(user);
             System.out.println("Login erfolgreich");
 
-            return new Response(200,"{ \"message\" : \"Login erfolgreich\", \"user\" : " + userJson + " }" );
+            return new Response(200,"{ \"message\": \"Login erfolgreich\", \"user\": " + userJson + " }" );
         } else {
             System.out.println("Login fehlgeschlagen");
-            return new Response(401, "{ \"message\" : \"Username und Passwort stimmen nicht überein\" }");
+            return new Response(401, "{ \"message\": \"Username und Passwort stimmen nicht überein\" }" );
         }
     }
 

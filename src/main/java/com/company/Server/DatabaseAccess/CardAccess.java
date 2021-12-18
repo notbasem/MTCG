@@ -3,11 +3,8 @@ package com.company.Server.DatabaseAccess;
 import com.company.Server.models.Card;
 import com.company.Server.models.Package;
 import com.company.Server.models.Response;
-import com.company.Server.models.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.HttpExchange;
 
 import java.sql.*;
 import java.util.ArrayList;
