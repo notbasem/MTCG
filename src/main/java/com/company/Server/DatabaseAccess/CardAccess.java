@@ -75,13 +75,13 @@ public class CardAccess extends DBAccess{
     }
 
     public Response readCards() {
+        ArrayList<Card> cards = new ArrayList<>();
         try {
             //Package erstellen
             PreparedStatement read = connection.prepareStatement(
                     "SELECT * FROM mtcg.public.card "
             );
             ResultSet rs = read.executeQuery();
-            ArrayList<Card> cards = new ArrayList<>();
 
             while (rs.next()) {
                 cards.add(new Card(rs.getString(1), rs.getString(2), rs.getFloat(3)));
@@ -92,7 +92,8 @@ public class CardAccess extends DBAccess{
             return new Response(400, "{ \"message\" : \"Cards konnten nicht gelesen werden\" }");
         }
 
-        return new Response(200, "{ \"message\" : \"Cards erfolgreich erstellt\" }");
+        return new Response(200, "{ \"message\" : \"Cards erfolgreich erstellt\", " +
+                "\"cards\":" + cards +" }");
     }
 
     private void deletePackage(Package pack) {
