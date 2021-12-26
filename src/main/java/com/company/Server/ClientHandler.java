@@ -1,14 +1,131 @@
 package com.company.Server;
 
-import com.sun.net.httpserver.HttpServer;
+import com.company.Server.controller.PackageController;
+import com.company.Server.controller.UserController;
+import com.company.Server.models.Response;
 
-import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ClientHandler {
-    HttpServer server;
+    private Socket client;
+    private String method;
+    private String uri;
+    private String version;
+    private String host;
+    private int contentLength;
+    private List<String> headers;
+    private String body = "";
 
-    public ClientHandler(HttpServer server) {
-        this.server = server;
+    public ClientHandler(Socket client) throws IOException {
+        this.client = client;
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(this.client.getInputStream()));
+
+        StringBuilder requestBuilder = new StringBuilder();
+        String line;
+        while (!(line = br.readLine()).isBlank()) {
+            System.out.println(line);
+            requestBuilder.append(line + "\r\n");
+        }
+
+        String request = requestBuilder.toString();
+        String[] requestsLines = request.split("\r\n");
+        String[] requestLine = requestsLines[0].split(" ");
+        this.method = requestLine[0];
+        this.uri = requestLine[1];
+        this.version = requestLine[2];
+        this.host = requestsLines[1].split(" ")[1];
+        this.headers = Arrays.stream(requestsLines).skip(2).collect(Collectors.toList());
+        System.out.println(headers);
+
+        //Mittels Java Streams schauen ob Content-Length vorhanden ist und initialisieren
+        if(headers.stream().anyMatch(x -> x.contains("Content-Length"))) {
+            this.contentLength = Integer.parseInt(String.valueOf(headers.stream()
+                            .filter(x -> x.contains("Content-Length"))
+                            .findFirst())
+                            .replaceAll("\\D", ""));
+
+            //Body auslesen und in this.body speichern
+            int read;
+            while ((read = br.read()) != -1) {
+                this.body += (char) read;
+                if (this.body.length() == this.contentLength) {
+                    break;
+                }
+            }
+            System.out.println(body);
+        }
+
+        //routing() aufrufen, um zu den entsprechenden Controllern zu gelangen
+        routing();
+    }
+
+    private void routing() throws IOException {
+        if (this.getUri().equals("/users") && this.getMethod().equals("POST")) {
+            new UserController().create(this);
+        } else if (this.getUri().equals("/sessions") && this.getMethod().equals("POST")) {
+            new UserController().login(this);
+        } else if (this.getUri().equals("/packages") && this.getMethod().equals("POST")) {
+            if (this.verifyUser(this.headers, "Basic admin-mtcgToken")) {
+                new PackageController().handle(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        } else {
+            new Response(405, "{ \"message\": \"Method not allowed\" }").sendResponse(this);
+        }
+    }
+
+    private boolean verifyUser(List<String> headers, String expectedToken) {
+        if (headers.stream().anyMatch(x -> x.contains("Authorization"))) {
+            String givenToken = headers.stream()
+                    .filter(x -> x.contains("Authorization"))
+                    .findFirst()
+                    .toString()
+                    .split(":")[1]
+                    .replaceFirst(" ", "")
+                    .replaceFirst("\\]", "");
+            System.out.println("GIVEN-TOKEN: " + givenToken);
+            return givenToken.equals(expectedToken);
+        }
+
+        return false;
+    }
+
+    public Socket getClient() {
+        return client;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public List<String> getHeaders() {
+        return headers;
+    }
+
+    public int getContentLength() {
+        return contentLength;
+    }
+
+    public String getBody() {
+        return body;
     }
 }
