@@ -2,6 +2,7 @@ package com.company.Server;
 
 import com.company.Server.controller.PackageController;
 import com.company.Server.controller.UserController;
+import com.company.Server.models.Response;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class ClientHandler {
     public ClientHandler(Socket client) throws IOException {
         this.client = client;
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
+        BufferedReader br = new BufferedReader(new InputStreamReader(this.client.getInputStream()));
 
         StringBuilder requestBuilder = new StringBuilder();
         String line;
@@ -65,15 +66,35 @@ public class ClientHandler {
     }
 
     private void routing() throws IOException {
-        switch (this.getUri()) {
-            case "/api/users":
-            case "/api/sessions":
-                new UserController().handle(this);
-                break;
-            case "/api/packages":
+        if (this.getUri().equals("/users") && this.getMethod().equals("POST")) {
+            new UserController().create(this);
+        } else if (this.getUri().equals("/sessions") && this.getMethod().equals("POST")) {
+            new UserController().login(this);
+        } else if (this.getUri().equals("/packages") && this.getMethod().equals("POST")) {
+            if (this.verifyUser(this.headers, "Basic admin-mtcgToken")) {
                 new PackageController().handle(this);
-                break;
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        } else {
+            new Response(405, "{ \"message\": \"Method not allowed\" }").sendResponse(this);
         }
+    }
+
+    private boolean verifyUser(List<String> headers, String expectedToken) {
+        if (headers.stream().anyMatch(x -> x.contains("Authorization"))) {
+            String givenToken = headers.stream()
+                    .filter(x -> x.contains("Authorization"))
+                    .findFirst()
+                    .toString()
+                    .split(":")[1]
+                    .replaceFirst(" ", "")
+                    .replaceFirst("\\]", "");
+            System.out.println("GIVEN-TOKEN: " + givenToken);
+            return givenToken.equals(expectedToken);
+        }
+
+        return false;
     }
 
     public Socket getClient() {

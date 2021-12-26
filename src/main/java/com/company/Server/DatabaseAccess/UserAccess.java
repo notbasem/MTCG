@@ -22,8 +22,8 @@ public class UserAccess extends DBAccess {
         //Wenn username nicht vorhanden ist, User erstellen
         if (!rs.next()) {
             PreparedStatement create = connection.prepareStatement(
-                    "INSERT INTO mtcg.public.user (id, username, password, token) " +
-                            "VALUES (?,?,?, ?);"
+                    "INSERT INTO mtcg.public.user (id, username, password, token, coins) " +
+                            "VALUES (?,?,?,?,?);"
             );
 
             //Password hash erstellen mit: https://github.com/patrickfav/bcrypt
@@ -33,6 +33,7 @@ public class UserAccess extends DBAccess {
             create.setString(2, user.getUsername());
             create.setString(3, user.getPassword());
             create.setString(4, user.getToken());
+            create.setInt(5, user.getCoins());
             create.executeUpdate();
             //sendResponse(exchange, 200, respText);
 

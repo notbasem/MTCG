@@ -12,26 +12,6 @@ import java.io.*;
 import java.sql.*;
 
 public class UserController {
-    public void handle(ClientHandler client) throws IOException {
-        if(client.getMethod().equals("POST")) {
-            //Request in String umwandeln
-            System.out.println(client.getBody());
-
-            //Registrierung, wenn POST-Request auf /api/users gemacht wird
-            if(client.getUri().toString().equalsIgnoreCase("/api/users")) {
-                //CREATE-Methode aufrufen und Response an den User liefern
-                create(client);
-            }
-            //Login, wenn API-Request auf /api/sessions gemacht wird
-            else if(client.getUri().toString().equalsIgnoreCase("/api/sessions")) {
-                //Login-Methode aufrufen und Response an den User liefern
-                login(client);
-            }
-        } else {
-            new Response(405, null).sendResponseHeaders(client);// 405 Method Not Allowed
-        }
-    }
-
     /**
      * CREATE-METHODE
      * @param client
@@ -39,7 +19,7 @@ public class UserController {
      * @throws JsonProcessingException
      */
 
-    private void create(ClientHandler client) throws IOException {
+    public void create(ClientHandler client) throws IOException {
         //ObjectMapper erstellen, der im JSON nicht auf Groß/Kleinschreibung achtet
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
@@ -62,7 +42,7 @@ public class UserController {
      * @return
      * @throws JsonProcessingException
      */
-    private void login(ClientHandler client) throws IOException {
+    public void login(ClientHandler client) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
         User user = objectMapper.readValue(client.getBody(), User.class);
