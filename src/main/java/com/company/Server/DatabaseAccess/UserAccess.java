@@ -81,5 +81,38 @@ public class UserAccess extends DBAccess {
         }
     }
 
+    public int getCoins(String token) {
+        try {
+            PreparedStatement getUser = connection.prepareStatement(
+                    "SELECT coins FROM mtcg.public.user WHERE token = ?"
+            );
+            getUser.setString(1, token);
 
+            ResultSet rs = getUser.executeQuery();
+            int coins = -1;
+            if (rs.next()) {
+                coins = rs.getInt(1);
+            }
+            return coins;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public int buyPackage(String token) {
+        if (getCoins(token) <= 0) {
+            return -1;
+        }
+        try {
+            PreparedStatement getUser = connection.prepareStatement(
+                    "UPDATE mtcg.public.user SET coins = coins-5 WHERE token = ?"
+            );
+            getUser.setString(1, token);
+            getUser.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return getCoins(token);
+    }
 }

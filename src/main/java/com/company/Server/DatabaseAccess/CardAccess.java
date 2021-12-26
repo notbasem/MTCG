@@ -95,6 +95,31 @@ public class CardAccess extends DBAccess{
         return new Response(200, "{ \"message\" : \"Cards erfolgreich erstellt\" }");
     }
 
+    public Response acquire(String token) throws SQLException {
+        System.out.println("ACQUIREEEEEE token: " + token);
+        //Kontrollieren ob genügend coins vorhanden sind
+        int coins = new UserAccess().getCoins(token);
+        System.out.println("Coins davor: " + coins);
+
+        //Wenn genügend coins vorhanden sind Package kaufen
+        if (coins>0) {
+
+
+            //Checken, ob Transaktion erfolgreich war
+            coins = new UserAccess().buyPackage(token);
+            if (coins == -1) {
+                System.out.println(coins);
+                //Wenn nicht erfolgreich --> Fehlermeldung
+                return new Response(400, "{ \"message\" : \"Package could not be acquired\" }");
+            }
+            System.out.println("Coins danach: " +coins);
+
+            return new Response(200, "{ \"message\" : \"Package could be acquired\" }");
+        }
+        return new Response(400, "{ \"message\" : \"Package could not be acquired. To few coins.\" }");
+    }
+
+
     private void deletePackage(Package pack) {
         try {
             PreparedStatement delete = connection.prepareStatement(
