@@ -30,7 +30,7 @@ public class PackageController {
         Response response = null;
         try {
             CardAccess cardAccess = new CardAccess();
-            response = cardAccess.readCards();
+            response = cardAccess.readCards(client.getToken().replaceAll("Basic ", ""));
         } catch (SQLException e) {
             e.printStackTrace();
         }

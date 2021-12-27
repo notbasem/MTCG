@@ -41,12 +41,24 @@ public class Card {
         this.damage = damage;
     }
 
+    /*
     @Override
     public String toString() {
         return "Card{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", damage=" + damage +
+                ", type='" + type + '\'' +
                 '}';
+    }
+    */
+
+    @Override
+    public String toString() {
+        return "{" +
+                "\"id\": \"" + id + "\"," +
+                "\"name\": \"" + name + "\"," +
+                "\"damage\": \"" + damage + "\"," +
+                "}";
     }
 }

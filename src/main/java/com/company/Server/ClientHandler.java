@@ -88,6 +88,12 @@ public class ClientHandler {
             } else {
                 new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
             }
+        } else if (this.getUri().equals("/cards") && this.getMethod().equals("GET")) {
+            if (this.headers.stream().anyMatch(x -> x.contains("Authorization"))) {
+                new PackageController().read(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
         } else {
             new Response(405, "{ \"message\": \"Method not allowed\" }").sendResponse(this);
         }

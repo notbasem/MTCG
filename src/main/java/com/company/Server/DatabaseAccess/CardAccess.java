@@ -74,14 +74,15 @@ public class CardAccess extends DBAccess{
         return new Response(200, "{ \"message\" : \"Cards erfolgreich erstellt\" }");
     }
 
-    public Response readCards() {
+    public Response readCards(String token) {
+        ArrayList<Card> cards = new ArrayList<>();
         try {
             //Package erstellen
             PreparedStatement read = connection.prepareStatement(
-                    "SELECT * FROM mtcg.public.card "
+                    "SELECT * FROM mtcg.public.card INNER JOIN package p on p.id = card.card_package_id_fk INNER JOIN mtcg.public.user u on u.id = p.fk_user WHERE token = ?"
             );
+            read.setString(1, token);
             ResultSet rs = read.executeQuery();
-            ArrayList<Card> cards = new ArrayList<>();
 
             while (rs.next()) {
                 cards.add(new Card(rs.getString(1), rs.getString(2), rs.getFloat(3)));
@@ -92,7 +93,8 @@ public class CardAccess extends DBAccess{
             return new Response(400, "{ \"message\" : \"Cards konnten nicht gelesen werden\" }");
         }
 
-        return new Response(200, "{ \"message\" : \"Cards erfolgreich erstellt\" }");
+        return new Response(200, "{ \"message\" : \"Cards erfolgreich ausgelesen\", " +
+                "\"cards\":" + cards +" }");
     }
 
     /**
