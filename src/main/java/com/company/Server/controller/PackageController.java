@@ -10,22 +10,7 @@ import java.io.*;
 import java.sql.*;
 
 public class PackageController {
-    public void handle(ClientHandler client) throws IOException {
-        if(client.getMethod().equals("POST")) {
-            //Request in String umwandeln
-            System.out.println(client.getBody());
-
-            //Package mit Cards erstellen
-            create(client);
-        } else if (client.getMethod().equals("GET")) { //READ unnötig, nur zum Test
-            //Cards auslesen
-            read(client);
-        } else {
-            new Response(405, null).sendResponseHeaders(client);// 405 Method Not Allowed
-        }
-    }
-
-    private void create(ClientHandler client) throws IOException {
+    public void create(ClientHandler client) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
 
@@ -41,11 +26,22 @@ public class PackageController {
         response.sendResponse(client);
     }
 
-    private void read(ClientHandler client) throws IOException {
+    public void read(ClientHandler client) throws IOException {
         Response response = null;
         try {
             CardAccess cardAccess = new CardAccess();
-            response = cardAccess.readCards();
+            response = cardAccess.readCards(client.getToken().replaceAll("Basic ", ""));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        response.sendResponse(client);
+    }
+
+    public void acquire(ClientHandler client) throws IOException {
+        Response response = null;
+        try {
+            CardAccess cardAccess = new CardAccess();
+            response = cardAccess.acquire(client.getToken().replaceAll("Basic ", ""));
         } catch (SQLException e) {
             e.printStackTrace();
         }

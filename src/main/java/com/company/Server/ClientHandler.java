@@ -50,12 +50,16 @@ public class ClientHandler {
                             .findFirst())
                             .replaceAll("\\D", ""));
 
-            //Body auslesen und in this.body speichern
-            int read;
-            while ((read = br.read()) != -1) {
-                this.body += (char) read;
-                if (this.body.length() == this.contentLength) {
-                    break;
+            System.out.println("CONTENT-LENGTH: " + this.contentLength);
+
+            if (contentLength > 0) {
+                //Body auslesen und in this.body speichern
+                int read;
+                while ((read = br.read()) != -1) {
+                    this.body += (char) read;
+                    if (this.body.length() == this.contentLength) {
+                        break;
+                    }
                 }
             }
             System.out.println(body);
@@ -71,8 +75,22 @@ public class ClientHandler {
         } else if (this.getUri().equals("/sessions") && this.getMethod().equals("POST")) {
             new UserController().login(this);
         } else if (this.getUri().equals("/packages") && this.getMethod().equals("POST")) {
-            if (this.verifyUser(this.headers, "Basic admin-mtcgToken")) {
-                new PackageController().handle(this);
+            if (this.verifyUser("Basic admin-mtcgToken")) {
+                new PackageController().create(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        } else if (this.getUri().equals("/packages") && this.getMethod().equals("GET")) {
+            new PackageController().read(this);
+        } else if (this.getUri().equals("/transactions/packages") && this.getMethod().equals("POST")) {
+            if (this.headers.stream().anyMatch(x -> x.contains("Authorization"))) {
+                new PackageController().acquire(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        } else if (this.getUri().equals("/cards") && this.getMethod().equals("GET")) {
+            if (this.headers.stream().anyMatch(x -> x.contains("Authorization"))) {
+                new PackageController().read(this);
             } else {
                 new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
             }
@@ -83,20 +101,28 @@ public class ClientHandler {
         }
     }
 
-    private boolean verifyUser(List<String> headers, String expectedToken) {
+    private boolean verifyUser(String expectedToken) {
         if (headers.stream().anyMatch(x -> x.contains("Authorization"))) {
-            String givenToken = headers.stream()
-                    .filter(x -> x.contains("Authorization"))
-                    .findFirst()
-                    .toString()
-                    .split(":")[1]
-                    .replaceFirst(" ", "")
-                    .replaceFirst("\\]", "");
+            String givenToken = this.getToken();
             System.out.println("GIVEN-TOKEN: " + givenToken);
             return givenToken.equals(expectedToken);
         }
 
         return false;
+    }
+
+    public String getToken() {
+        if (!headers.stream().anyMatch(x -> x.contains("Authorization"))) {
+            return null;
+        }
+
+        return headers.stream()
+                .filter(x -> x.contains("Authorization"))
+                .findFirst()
+                .toString()
+                .split(":")[1]
+                .replaceFirst(" ", "")
+                .replaceFirst("\\]", "");
     }
 
     public Socket getClient() {

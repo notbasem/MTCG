@@ -74,13 +74,14 @@ public class CardAccess extends DBAccess{
         return new Response(200, "{ \"message\" : \"Cards erfolgreich erstellt\" }");
     }
 
-    public Response readCards() {
+    public Response readCards(String token) {
         ArrayList<Card> cards = new ArrayList<>();
         try {
             //Package erstellen
             PreparedStatement read = connection.prepareStatement(
-                    "SELECT * FROM mtcg.public.card "
+                    "SELECT * FROM mtcg.public.card INNER JOIN package p on p.id = card.card_package_id_fk INNER JOIN mtcg.public.user u on u.id = p.fk_user WHERE token = ?"
             );
+            read.setString(1, token);
             ResultSet rs = read.executeQuery();
 
             while (rs.next()) {
@@ -92,9 +93,61 @@ public class CardAccess extends DBAccess{
             return new Response(400, "{ \"message\" : \"Cards konnten nicht gelesen werden\" }");
         }
 
-        return new Response(200, "{ \"message\" : \"Cards erfolgreich erstellt\", " +
+
+        return new Response(200, "{ \"message\" : \"Cards erfolgreich ausgelesen\", " +
                 "\"cards\":" + cards +" }");
     }
+
+    /**
+     * TODO: Funktion nicht einheitlich gelöst, mal wird user.id verwendet, mal user.token
+     * TODO: Funtkion einheiltich machen
+     * TODO: Transaktion nur durchführen wenn package wirklich erhalten
+     * TODO: UserAccess? oder doch alles in einer Funktion lösen?
+     *
+     * @param token
+     * @return
+     * @throws SQLException
+     */
+    public Response acquire(String token) throws SQLException {
+        System.out.println("ACQUIREEEEEE token: " + token);
+        //Kontrollieren ob genügend coins vorhanden sind
+        int coins = new UserAccess().getCoins(token);
+        System.out.println("Coins davor: " + coins);
+
+        //Wenn genügend coins vorhanden sind Package kaufen
+        if (coins>0) {
+            PreparedStatement choosePackage = connection.prepareStatement(
+                    "SELECT * FROM mtcg.public.package WHERE fk_user IS NULL"
+            );
+            ResultSet rs = choosePackage.executeQuery();
+            if (rs.next()) {
+                String userId = new UserAccess().getId(token);
+                System.out.println(userId);
+                PreparedStatement acquirePackage = connection.prepareStatement(
+                        "UPDATE mtcg.public.package SET fk_user = (SELECT id FROM mtcg.public.user WHERE token = ?) WHERE package.id = ?"
+                );
+                acquirePackage.setString(1, token);
+                acquirePackage.setString(2, rs.getString(1));
+                acquirePackage.executeUpdate();
+            } else {
+                return new Response(400, "{ \"message\" : \"No packages avaliable\" }");
+            }
+
+
+            //Checken, ob Transaktion erfolgreich war
+            coins = new UserAccess().buyPackage(token);
+            if (coins == -1) {
+                System.out.println(coins);
+                //Wenn nicht erfolgreich --> Fehlermeldung
+                return new Response(400, "{ \"message\" : \"Package could not be acquired\" }");
+            }
+            System.out.println("Coins danach: " +coins);
+
+            return new Response(200, "{ \"message\" : \"Package could be acquired\" }");
+        }
+        return new Response(400, "{ \"message\" : \"Package could not be acquired. To few coins.\" }");
+    }
+
 
     private void deletePackage(Package pack) {
         try {
