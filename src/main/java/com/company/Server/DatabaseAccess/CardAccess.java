@@ -95,6 +95,16 @@ public class CardAccess extends DBAccess{
         return new Response(200, "{ \"message\" : \"Cards erfolgreich erstellt\" }");
     }
 
+    /**
+     * TODO: Funktion nicht einheitlich gelöst, mal wird user.id verwendet, mal user.token
+     * TODO: Funtkion einheiltich machen
+     * TODO: Transaktion nur durchführen wenn package wirklich erhalten
+     * TODO: UserAccess? oder doch alles in einer Funktion lösen?
+     *
+     * @param token
+     * @return
+     * @throws SQLException
+     */
     public Response acquire(String token) throws SQLException {
         System.out.println("ACQUIREEEEEE token: " + token);
         //Kontrollieren ob genügend coins vorhanden sind
@@ -103,6 +113,22 @@ public class CardAccess extends DBAccess{
 
         //Wenn genügend coins vorhanden sind Package kaufen
         if (coins>0) {
+            PreparedStatement choosePackage = connection.prepareStatement(
+                    "SELECT * FROM mtcg.public.package WHERE fk_user IS NULL"
+            );
+            ResultSet rs = choosePackage.executeQuery();
+            if (rs.next()) {
+                String userId = new UserAccess().getId(token);
+                System.out.println(userId);
+                PreparedStatement acquirePackage = connection.prepareStatement(
+                        "UPDATE mtcg.public.package SET fk_user = (SELECT id FROM mtcg.public.user WHERE token = ?) WHERE package.id = ?"
+                );
+                acquirePackage.setString(1, token);
+                acquirePackage.setString(2, rs.getString(1));
+                acquirePackage.executeUpdate();
+            } else {
+                return new Response(400, "{ \"message\" : \"No packages avaliable\" }");
+            }
 
 
             //Checken, ob Transaktion erfolgreich war

@@ -115,4 +115,21 @@ public class UserAccess extends DBAccess {
         }
         return getCoins(token);
     }
+
+    public String getId(String token) {
+        try {
+            PreparedStatement getUser = connection.prepareStatement(
+                    "SELECT id FROM mtcg.public.user WHERE token = ?"
+            );
+            getUser.setString(1, token);
+
+            ResultSet rs = getUser.executeQuery();
+            if (rs.next()) {
+                 return rs.getString(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
