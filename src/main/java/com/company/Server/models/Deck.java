@@ -3,10 +3,20 @@ package com.company.Server.models;
 import java.util.List;
 
 public class Deck {
+    private String id;
     private List<Card> cards;
 
-    public Deck(List<Card> cards) {
+    public Deck(String id, List<Card> cards) {
+        this.id = id;
         this.cards = cards;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public List<Card> getCards() {

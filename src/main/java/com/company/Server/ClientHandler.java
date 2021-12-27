@@ -101,6 +101,12 @@ public class ClientHandler {
             } else {
                 new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
             }
+        } else if (this.getUri().equals("/deck") && this.getMethod().equals("PUT")) {
+            if (hasAuthorizationHeader()) {
+                new DeckController().configure(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
         } else {
             new Response(405, "{ \"message\": \"Method not allowed\" }").sendResponse(this);
         }
@@ -121,7 +127,7 @@ public class ClientHandler {
     }
 
     public String getToken() {
-        if (!headers.stream().anyMatch(x -> x.contains("Authorization"))) {
+        if (!hasAuthorizationHeader()) {
             return null;
         }
 

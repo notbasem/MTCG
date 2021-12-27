@@ -24,4 +24,16 @@ public class DeckController {
         }
         response.sendResponse(client);
     }
+
+    public void configure(ClientHandler client) throws IOException {
+        //Random Deck auslesen
+        Response response = null;
+        try {
+            DeckAccess deckAccess = new DeckAccess();
+            response = deckAccess.configure(client.getBody(), client.getToken().replaceAll("Basic ", ""));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        response.sendResponse(client);
+    }
 }
