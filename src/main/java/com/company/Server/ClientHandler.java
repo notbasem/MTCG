@@ -95,7 +95,7 @@ public class ClientHandler {
                 new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
             }
         } else if (this.getUri().equals("/packages") && this.getMethod().equals("GET")) {
-            new PackageController().handle(this);
+            new PackageController().read(this);
         } else {
             new Response(405, "{ \"message\": \"Method not allowed\" }").sendResponse(this);
         }
