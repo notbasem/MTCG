@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -148,6 +149,30 @@ public class CardAccess extends DBAccess{
         return new Response(400, "{ \"message\" : \"Package could not be acquired. To few coins.\" }");
     }
 
+    public ArrayList<Card> get4Cards(String token) {
+        ArrayList<Card> cards = new ArrayList<>();
+        try {
+            //Package erstellen
+            PreparedStatement read = connection.prepareStatement(
+                    "SELECT * FROM mtcg.public.card " +
+                            "INNER JOIN package p on p.id = card.card_package_id_fk " +
+                            "INNER JOIN mtcg.public.user u on u.id = p.fk_user " +
+                            "WHERE token = ? " +
+                            "LIMIT 4;"
+            );
+            read.setString(1, token);
+            ResultSet rs = read.executeQuery();
+
+            while (rs.next()) {
+                cards.add(new Card(rs.getString(1), rs.getString(2), rs.getFloat(3)));
+            }
+            System.out.println(cards);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return cards;
+    }
 
     private void deletePackage(Package pack) {
         try {
