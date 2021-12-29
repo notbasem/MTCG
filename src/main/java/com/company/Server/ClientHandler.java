@@ -70,11 +70,24 @@ public class ClientHandler {
         routing();
     }
 
-    // TODO: If(hasAuthheader) besser einsetzen und dadurch abfragen geringer machen
+    // TODO: hasAuthheader & verifyUser() besser einsetzen und dadurch if-abfragen geringer machen
     private void routing() throws IOException {
         if (this.getUri().equals("/users") && this.getMethod().equals("POST")) {
             new UserController().create(this);
-        } else if (this.getUri().equals("/sessions") && this.getMethod().equals("POST")) {
+        } else if (this.getUri().matches("/users/\\w+") && this.getMethod().equals("GET")) {
+            if (verifyUser(this.createUsertokenFromURL())) {
+                new UserController().read(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        } else if (this.getUri().matches("/users/\\w+") && this.getMethod().equals("PUT")) {
+            if (verifyUser(this.createUsertokenFromURL())) {
+                new UserController().update(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        }
+        else if (this.getUri().equals("/sessions") && this.getMethod().equals("POST")) {
             new UserController().login(this);
         } else if (this.getUri().equals("/packages") && this.getMethod().equals("POST")) {
             if (this.verifyUser("Basic admin-mtcgToken")) {
@@ -125,12 +138,16 @@ public class ClientHandler {
 
     private boolean verifyUser(String expectedToken) {
         if (hasAuthorizationHeader()) {
-            String givenToken = this.getToken();
-            System.out.println("GIVEN-TOKEN: " + givenToken);
-            return givenToken.equals(expectedToken);
+            System.out.println("GIVEN-TOKEN: " + this.getToken());
+            return this.getToken().equals(expectedToken);
         }
 
         return false;
+    }
+
+    //Usertoken aus dem Usernamen in der URL erstellen
+    private String createUsertokenFromURL() {
+        return "Basic " + this.getUri().replaceAll("/users/", "") + "-mtcgToken";
     }
 
     public String getToken() {

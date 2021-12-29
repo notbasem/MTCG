@@ -56,4 +56,26 @@ public class UserController {
         }
         response.sendResponse(client);
     }
+
+    public void read(ClientHandler client) throws IOException {
+        Response response = null;
+        try {
+            UserAccess userAccess = new UserAccess();
+            response = userAccess.read(client.getToken().replaceAll("Basic ", ""));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        response.sendResponse(client);
+    }
+
+    public void update(ClientHandler client) throws IOException {
+        Response response = null;
+        try {
+            UserAccess userAccess = new UserAccess();
+            response = userAccess.update(client.getBody(), client.getToken().replaceAll("Basic ", ""));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        response.sendResponse(client);
+    }
 }
