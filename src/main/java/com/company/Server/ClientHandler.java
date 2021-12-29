@@ -1,5 +1,6 @@
 package com.company.Server;
 
+import com.company.Server.controller.DeckController;
 import com.company.Server.controller.PackageController;
 import com.company.Server.controller.UserController;
 import com.company.Server.models.Response;
@@ -69,6 +70,7 @@ public class ClientHandler {
         routing();
     }
 
+    // TODO: If(hasAuthheader) besser einsetzen und dadurch abfragen geringer machen
     private void routing() throws IOException {
         if (this.getUri().equals("/users") && this.getMethod().equals("POST")) {
             new UserController().create(this);
@@ -83,26 +85,46 @@ public class ClientHandler {
         } else if (this.getUri().equals("/packages") && this.getMethod().equals("GET")) {
             new PackageController().read(this);
         } else if (this.getUri().equals("/transactions/packages") && this.getMethod().equals("POST")) {
-            if (this.headers.stream().anyMatch(x -> x.contains("Authorization"))) {
+            if (hasAuthorizationHeader()) {
                 new PackageController().acquire(this);
             } else {
                 new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
             }
         } else if (this.getUri().equals("/cards") && this.getMethod().equals("GET")) {
-            if (this.headers.stream().anyMatch(x -> x.contains("Authorization"))) {
+            if (hasAuthorizationHeader()) {
                 new PackageController().read(this);
             } else {
                 new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
             }
-        } else if (this.getUri().equals("/packages") && this.getMethod().equals("GET")) {
-            new PackageController().read(this);
+        } else if (this.getUri().equals("/deck") && this.getMethod().equals("GET")) {
+            if (hasAuthorizationHeader()) {
+                new DeckController().read(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        } else if (this.getUri().equals("/deck") && this.getMethod().equals("PUT")) {
+            if (hasAuthorizationHeader()) {
+                new DeckController().configure(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        } else if (this.getUri().equals("/deck?format=plain") && this.getMethod().equals("GET")) {
+            if (hasAuthorizationHeader()) {
+                new DeckController().readPlain(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
         } else {
             new Response(405, "{ \"message\": \"Method not allowed\" }").sendResponse(this);
         }
     }
 
+    private boolean hasAuthorizationHeader() {
+        return this.headers.stream().anyMatch(x -> x.contains("Authorization"));
+    }
+
     private boolean verifyUser(String expectedToken) {
-        if (headers.stream().anyMatch(x -> x.contains("Authorization"))) {
+        if (hasAuthorizationHeader()) {
             String givenToken = this.getToken();
             System.out.println("GIVEN-TOKEN: " + givenToken);
             return givenToken.equals(expectedToken);
@@ -112,7 +134,7 @@ public class ClientHandler {
     }
 
     public String getToken() {
-        if (!headers.stream().anyMatch(x -> x.contains("Authorization"))) {
+        if (!hasAuthorizationHeader()) {
             return null;
         }
 
