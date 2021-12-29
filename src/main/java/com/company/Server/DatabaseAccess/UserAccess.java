@@ -7,8 +7,14 @@ import com.company.Server.models.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.source.tree.Tree;
 
 import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class UserAccess extends DBAccess {
     public UserAccess() throws SQLException {
@@ -96,7 +102,8 @@ public class UserAccess extends DBAccess {
 
             if (rs.next()) {
                 User user = new User(rs.getString(1), rs.getString(2),
-                        rs.getString(4), rs.getInt(5)
+                        rs.getString(4), rs.getInt(5), rs.getString(6),
+                        rs.getString(7), rs.getString(8)
                 );
                 userJson = objectMapper.writeValueAsString(user);
             }
@@ -106,6 +113,32 @@ public class UserAccess extends DBAccess {
         }
         return new Response(200, "{ \"message\": \"User konnte erfolgreich ausgelesen werden\"," +
                 "\"user\":" + userJson + "}" );
+    }
+
+    public Response update(String body, String token) {
+        Map<String, String> json = new TreeMap<>();
+        Pattern p = Pattern.compile("\"(\\w+)\":\\s*\"(.*?)\"");
+        Matcher m = p.matcher(body);
+
+        while (m.find()) {
+            System.out.println(m.group(0));
+            json.put(m.group(1), m.group(2));
+        }
+
+        try {
+            PreparedStatement getUser = connection.prepareStatement(
+                    "UPDATE mtcg.public.user SET name=?, bio=?, image=? WHERE token = ?"
+            );
+            getUser.setString(1, json.get("Name"));
+            getUser.setString(2, json.get("Bio"));
+            getUser.setString(3, json.get("Image"));
+            getUser.setString(4, token);
+            getUser.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new Response(400, "{ \"message\": \"User konnte nicht geupdated werden\" }");
+        }
+        return new Response(200,"{ \"message\": \"User erfolgreich geupdated\" }" );
     }
 
     public int getCoins(String token) {

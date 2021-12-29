@@ -70,7 +70,7 @@ public class ClientHandler {
         routing();
     }
 
-    // TODO: If(hasAuthheader) besser einsetzen und dadurch abfragen geringer machen
+    // TODO: hasAuthheader & verifyUser() besser einsetzen und dadurch if-abfragen geringer machen
     private void routing() throws IOException {
         if (this.getUri().equals("/users") && this.getMethod().equals("POST")) {
             new UserController().create(this);
@@ -80,7 +80,14 @@ public class ClientHandler {
             } else {
                 new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
             }
-        } else if (this.getUri().equals("/sessions") && this.getMethod().equals("POST")) {
+        } else if (this.getUri().matches("/users/\\w+") && this.getMethod().equals("PUT")) {
+            if (verifyUser(this.createUsertokenFromURL())) {
+                new UserController().update(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        }
+        else if (this.getUri().equals("/sessions") && this.getMethod().equals("POST")) {
             new UserController().login(this);
         } else if (this.getUri().equals("/packages") && this.getMethod().equals("POST")) {
             if (this.verifyUser("Basic admin-mtcgToken")) {
