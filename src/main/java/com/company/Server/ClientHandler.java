@@ -74,6 +74,12 @@ public class ClientHandler {
     private void routing() throws IOException {
         if (this.getUri().equals("/users") && this.getMethod().equals("POST")) {
             new UserController().create(this);
+        } else if (this.getUri().matches("/users/\\w+") && this.getMethod().equals("GET")) {
+            if (verifyUser(this.createUsertokenFromURL())) {
+                new UserController().read(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
         } else if (this.getUri().equals("/sessions") && this.getMethod().equals("POST")) {
             new UserController().login(this);
         } else if (this.getUri().equals("/packages") && this.getMethod().equals("POST")) {
@@ -125,12 +131,16 @@ public class ClientHandler {
 
     private boolean verifyUser(String expectedToken) {
         if (hasAuthorizationHeader()) {
-            String givenToken = this.getToken();
-            System.out.println("GIVEN-TOKEN: " + givenToken);
-            return givenToken.equals(expectedToken);
+            System.out.println("GIVEN-TOKEN: " + this.getToken());
+            return this.getToken().equals(expectedToken);
         }
 
         return false;
+    }
+
+    //Usertoken aus dem Usernamen in der URL erstellen
+    private String createUsertokenFromURL() {
+        return "Basic " + this.getUri().replaceAll("/users/", "") + "-mtcgToken";
     }
 
     public String getToken() {

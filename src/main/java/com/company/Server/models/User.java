@@ -25,6 +25,14 @@ public class User {
         this.coins = 20;
     }
 
+    public User(String id, String username, String token, int coins) {
+        this.id = id;
+        this.username = username;
+        this.password = null;
+        this.token = token;
+        this.coins = coins;
+    }
+
     public String getId() {
         return id;
     }

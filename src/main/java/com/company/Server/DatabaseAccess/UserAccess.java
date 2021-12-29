@@ -83,6 +83,31 @@ public class UserAccess extends DBAccess {
         }
     }
 
+    public Response read(String token) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+        String userJson = "";
+        try {
+            PreparedStatement getUser = connection.prepareStatement(
+                    "SELECT * FROM mtcg.public.user WHERE token = ?"
+            );
+            getUser.setString(1, token);
+            ResultSet rs = getUser.executeQuery();
+
+            if (rs.next()) {
+                User user = new User(rs.getString(1), rs.getString(2),
+                        rs.getString(4), rs.getInt(5)
+                );
+                userJson = objectMapper.writeValueAsString(user);
+            }
+        } catch (SQLException | JsonProcessingException e) {
+            e.printStackTrace();
+            return new Response(400, "{ \"message\": \"User konnte nicht ausgelesen werden\" }");
+        }
+        return new Response(200, "{ \"message\": \"User konnte erfolgreich ausgelesen werden\"," +
+                "\"user\":" + userJson + "}" );
+    }
+
     public int getCoins(String token) {
         try {
             PreparedStatement getUser = connection.prepareStatement(
