@@ -48,7 +48,7 @@ public class UserAccess extends DBAccess {
             new DeckAccess().create(user);
 
             //Stat für User erstellen
-            new StatAccess().create(new Stat(user));
+            new StatAccess().create(new Stat(user.getId()));
 
             System.out.println("Registrierung erfolgreich:");
             System.out.println("Username: " + user.getUsername() + " | Password: " + user.getPassword() + " | Token: " + user.getToken());

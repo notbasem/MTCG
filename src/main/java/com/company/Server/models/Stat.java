@@ -1,5 +1,6 @@
 package com.company.Server.models;
 
+import java.beans.ConstructorProperties;
 import java.util.UUID;
 
 public class Stat {
@@ -7,14 +8,33 @@ public class Stat {
     private int elo;
     private int wins;
     private int defeats;
-    User user;
+    String userId;
 
-    public Stat(User user) {
+    public Stat(String userId) {
         this.id = UUID.randomUUID().toString();
         this.elo = 100;
         this.wins = 0;
         this.defeats = 0;
-        this.user = user;
+        this.userId = userId;
+    }
+
+    public Stat(String id, int elo, int wins, int defeats, String userId) {
+        this.id = id;
+        this.elo = elo;
+        this.wins = wins;
+        this.defeats = defeats;
+        this.userId = userId;
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "\"id\": \"" + id + "\", " +
+                "\"elo\": \"" + elo + "\"," +
+                "\"wins\": \"" + wins + "\"," +
+                "\"defeats\": \"" + defeats + "\"," +
+                "\"userId\": \"" + userId + "\" " +
+                "}";
     }
 
     public String getId() {
@@ -49,11 +69,11 @@ public class Stat {
         this.defeats = defeats;
     }
 
-    public User getUser() {
-        return user;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }
