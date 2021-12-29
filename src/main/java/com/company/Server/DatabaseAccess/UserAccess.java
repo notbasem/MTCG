@@ -3,6 +3,7 @@ package com.company.Server.DatabaseAccess;
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.company.Server.models.Deck;
 import com.company.Server.models.Response;
+import com.company.Server.models.Stat;
 import com.company.Server.models.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -43,7 +44,11 @@ public class UserAccess extends DBAccess {
             create.setInt(5, user.getCoins());
             create.executeUpdate();
 
+            //Deck für User erstellen
             new DeckAccess().create(user);
+
+            //Stat für User erstellen
+            new StatAccess().create(new Stat(user));
 
             System.out.println("Registrierung erfolgreich:");
             System.out.println("Username: " + user.getUsername() + " | Password: " + user.getPassword() + " | Token: " + user.getToken());
