@@ -49,4 +49,15 @@ public class Response {
         clientOutput.flush();
         client.getClient().close();
     }
+
+    public void sendPlain(ClientHandler client) throws IOException {
+        System.out.println("RESPONSE: " + this.response.length() + ", " + this.response);
+        OutputStream clientOutput = client.getClient().getOutputStream();
+        clientOutput.write(("HTTP/1.1 " + status + "\r\n").getBytes());
+        clientOutput.write(("Content-Length: " + this.response.getBytes().length + "\r\n").getBytes());
+        clientOutput.write(("Content-Type: text/plain" + "\r\n\r\n").getBytes());
+        clientOutput.write((this.response).getBytes());
+        clientOutput.flush();
+        client.getClient().close();
+    }
 }
