@@ -3,6 +3,7 @@ package com.company.Server;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,8 @@ public class Server {
             while (true) {
                 try (Socket client = serverSocket.accept()) {
                     new ClientHandler(client);
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
                 }
             }
         }
