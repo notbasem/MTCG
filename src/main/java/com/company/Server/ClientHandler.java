@@ -2,6 +2,7 @@ package com.company.Server;
 
 import com.company.Server.controller.DeckController;
 import com.company.Server.controller.PackageController;
+import com.company.Server.controller.StatController;
 import com.company.Server.controller.UserController;
 import com.company.Server.models.Response;
 
@@ -124,6 +125,18 @@ public class ClientHandler {
         } else if (this.getUri().equals("/deck?format=plain") && this.getMethod().equals("GET")) {
             if (hasAuthorizationHeader()) {
                 new DeckController().readPlain(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        } else if (this.getUri().equals("/stats") && this.getMethod().equals("GET")) {
+            if (hasAuthorizationHeader()) {
+                new StatController().read(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        } else if (this.getUri().equals("/score") && this.getMethod().equals("GET")) {
+            if (hasAuthorizationHeader()) {
+                new StatController().scoreboard(this);
             } else {
                 new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
             }
