@@ -19,4 +19,15 @@ public class StatController {
         }
         response.sendResponse(client);
     }
+
+    public void scoreboard(ClientHandler client) throws IOException {
+        Response response = null;
+        try {
+            StatAccess statAccess = new StatAccess();
+            response = statAccess.scoreboard(client.getToken().replaceAll("Basic ", ""));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        response.sendResponse(client);
+    }
 }
