@@ -140,7 +140,7 @@ public class ClientHandler {
             }
         } else if (this.getUri().equals("/battles") && this.getMethod().equals("POST")) {
             if (hasAuthorizationHeader()) {
-                new BattleController().handle(this);
+                new BattleController().battle(this);
             } else {
                 new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
             }

@@ -1,5 +1,6 @@
 package com.company.Server.DatabaseAccess;
 
+import com.company.Server.models.Battle;
 import com.company.Server.models.Response;
 import com.company.Server.models.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -14,94 +15,121 @@ public class BattleAccess extends DBAccess {
     public BattleAccess() throws SQLException {
     }
 
-    //Checkt ob es beitretbare Battles gibt
-    public boolean battleAvaliable(String token) {
+    public Battle createOrJoin(String token) {
+        Battle battle = null;
         try {
-            PreparedStatement joinBattle = connection.prepareStatement(
-                    "SELECT * FROM battle " +
-                            "WHERE fk_player2 IS NULL"
+            PreparedStatement createOrJoin = connection.prepareStatement(
+                    "SELECT * FROM battle WHERE fk_player2 IS NULL LIMIT 1"
             );
-            ResultSet rs = joinBattle.executeQuery();
+            ResultSet rs = createOrJoin.executeQuery();
 
             if (rs.next()) {
-                System.out.println(rs.getString(1) + "|" +
-                        rs.getString(2) + "|" +
-                        rs.getString(3) + "|" +
-                        rs.getString(4)
-                );
-                return true;
+                battle = getBattle(rs.getString(1));
+            } else {
+                battle = createBattle();
             }
+
+            battle = addPlayer(battle, token);
+            if (battle == null) {
+                System.out.println("Bereits ein offenes Battle vorhanden");
+                return null;
+            }
+
+            System.out.println(battle);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return false;
+        return battle;
     }
 
-    //Schaut nach ob ein Spieler bereits ein Battle gestartet hat, dem noch jemand beitreten kann
-    public boolean hasOpenBattles(String token) {
+    private Battle createBattle () {
+        Battle battle = null;
         try {
-            PreparedStatement joinBattle = connection.prepareStatement(
-                    "SELECT * FROM battle " +
-                            "INNER JOIN \"user\" u on u.id = battle.fk_player1 " +
-                            "WHERE u.token = ? AND fk_player1 = u.id AND fk_player2 IS NULL"
-            );
-            joinBattle.setString(1, token);
-            ResultSet rs = joinBattle.executeQuery();
-
-            if (rs.next()) {
-                System.out.println(rs.getString(1) + "|" +
-                        rs.getString(2) + "|" +
-                        rs.getString(3) + "|" +
-                        rs.getString(4)
-                );
-                return true;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    //Erstellt ein Battle
-    public Response create(String token) {
-        try {
-            String userId = new UserAccess().getId(token);
             PreparedStatement create = connection.prepareStatement(
                     "INSERT INTO battle (id, fk_player1, fk_player2, fk_winner) VALUES (?,?,?,?)"
             );
-            create.setString(1, UUID.randomUUID().toString());
-            create.setString(2, userId);
+            String id = UUID.randomUUID().toString();
+            create.setString(1, id);
+            create.setString(2, null);
             create.setString(3, null);
             create.setString(4, null);
             create.execute();
+
+            battle = new Battle(id, null, null, null);
         } catch (SQLException e) {
             e.printStackTrace();
-            return new Response(400, "{ \"message\" : \"Battle konnte nicht erstellt werden\" }");
         }
-        return new Response(200, "{ \"message\" : \"Battle erfolgreich erstellt\"}");
+        return battle;
     }
 
-    //Tritt einem Battle bei
-    public Response join(String token) {
-        //Checkt, ob der Spieler bereits ein offenes Spiel hat
-        //Verhindert einen Beitritt zu seinem eigenen Battle
-        if (hasOpenBattles(token)) {
-            return new Response(400, "{ \"message\" : \"Warten auf andere Spieler...\" }");
-        }
-        //Wenn der Spieler noch kein offenes Spiel hat, dann tritt er einem Spiel bei
+    private Battle addPlayer (Battle battle, String token) {
         try {
             String userId = new UserAccess().getId(token);
-            PreparedStatement create = connection.prepareStatement(
-                    "UPDATE battle SET fk_player2 = ? WHERE fk_player2 IS NULL"
-            );
+            PreparedStatement create;
+            if (battle.getPlayer1() == null) {
+                System.out.println("PLAYER1");
+                create = connection.prepareStatement(
+                        "UPDATE battle SET fk_player1 = ? WHERE id = ?"
+                );
+            } else if (battle.getPlayer2() == null && !battle.getPlayer1().equals(userId)){
+                System.out.println("PLAYER2");
+                create = connection.prepareStatement(
+                        "UPDATE battle SET fk_player2 = ? WHERE id = ?"
+                );
+            } else {
+                System.out.println("Bereits ein offenes Battle vorhanden");
+                return null;
+            }
             create.setString(1, userId);
+            create.setString(2, battle.getId());
+            battle.setPlayer1(battle.getId());
             create.execute();
         } catch (SQLException e) {
             e.printStackTrace();
-            return new Response(400, "{ \"message\" : \"Battle konnte nicht beigetreten werden\" }");
+            return null;
         }
-        return new Response(200, "{ \"message\" : \"Battle erfolgreich beigetreten\"}");
+        return battle;
     }
+
+    private Battle getBattle (String battleId) {
+        System.out.println(battleId);
+        Battle battle = null;
+        try {
+            PreparedStatement create = connection.prepareStatement(
+                    "SELECT * FROM battle WHERE id = ?"
+            );
+            create.setString(1, battleId);
+            ResultSet rs = create.executeQuery();
+
+            if (rs.next()) {
+                battle = new Battle(rs.getString(1), rs.getString(2),
+                        rs.getString(3), rs.getString(4));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return battle;
+    }
+
+    public Response battle(Battle battle) {
+        if (battle == null) {
+            return new Response(400, "{ \"message\" : \"Bereits ein offenes Battle vorhanden\"}");
+        }
+        //Wenn der Spieler noch kein offenes Spiel hat, dann tritt er einem Spiel bei
+        return new Response(200, "{ \"message\" : \"Battle erfolgreich erstellt/beigetreten\"}");
+    }
+
+    private void newRound() {
+        try {
+            PreparedStatement create = connection.prepareStatement(
+                    "SELECT * FROM round"
+            );
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
 
 }
