@@ -197,4 +197,28 @@ public class UserAccess extends DBAccess {
         }
         return null;
     }
+
+    public User getUser(String id) {
+        User user = null;
+        try {
+            PreparedStatement getUser = connection.prepareStatement(
+                    "SELECT * FROM mtcg.public.user WHERE id = ?"
+            );
+            getUser.setString(1, id);
+            ResultSet rs = getUser.executeQuery();
+
+            if (rs.next()) {
+                System.out.println(rs.getString(1)+"|"+ rs.getString(2)+"|"+
+                        rs.getString(4)+"|"+ rs.getInt(5)+"|"+ rs.getString(6)+"|"+
+                        rs.getString(7)+"|"+ rs.getString(8));
+                user = new User(rs.getString(1), rs.getString(2),
+                        rs.getString(4), rs.getInt(5), rs.getString(6),
+                        rs.getString(7), rs.getString(8)
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return user;
+    }
 }

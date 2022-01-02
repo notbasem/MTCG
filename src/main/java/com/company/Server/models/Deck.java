@@ -11,6 +11,11 @@ public class Deck {
         this.cards = cards;
     }
 
+    public Deck(String id) {
+        this.id = id;
+        this.cards = null;
+    }
+
     public String getId() {
         return id;
     }

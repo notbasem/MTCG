@@ -14,9 +14,9 @@ public class BattleController {
         BattleAccess battleAccess = new BattleAccess();
         String token = client.getToken().replaceAll("Basic ", "");
         Battle battle = battleAccess.createOrJoin(token);
-        Response response;
+
         //Battle starten
-        response = battleAccess.battle(battle);
+        Response response = battleAccess.battle(battle);
         response.sendResponse(client);
 
     }

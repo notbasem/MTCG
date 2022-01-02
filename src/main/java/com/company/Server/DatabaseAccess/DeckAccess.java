@@ -1,6 +1,7 @@
 package com.company.Server.DatabaseAccess;
 
 import com.company.Server.models.Card;
+import com.company.Server.models.Deck;
 import com.company.Server.models.Response;
 import com.company.Server.models.User;
 
@@ -8,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class DeckAccess extends DBAccess {
@@ -184,6 +186,43 @@ public class DeckAccess extends DBAccess {
             }
         }
         return new Response(200, "{ \"deck\":" + deck +" }");
+    }
+
+    public Deck getDeck(String userId) {
+        Deck deck = null;
+        List<Card> cards = new ArrayList<>();
+        try {
+            PreparedStatement getDeck = connection.prepareStatement(
+                    "SELECT * FROM mtcg.public.deck " +
+                            "WHERE fk_user = ?"
+            );
+            getDeck.setString(1, userId);
+            ResultSet rsDeck = getDeck.executeQuery();
+
+            if (rsDeck.next()) {
+                deck = new Deck(rsDeck.getString(1));
+            }
+
+            PreparedStatement read = connection.prepareStatement(
+                    "SELECT * FROM mtcg.public.card " +
+                            "INNER JOIN deck d on card.id = d.fk_card1 " +
+                            "OR card.id = d.fk_card2 " +
+                            "OR card.id = d.fk_card3 " +
+                            "OR card.id = d.fk_card4 " +
+                            "INNER JOIN mtcg.public.user u on u.id = d.fk_user " +
+                            "WHERE u.id = ?"
+            );
+            read.setString(1, userId);
+            ResultSet rs = read.executeQuery();
+            while (rs.next()) {
+                System.out.println(rs.getString(1) + ", " + rs.getString(2) + ", " + rs.getString(3));
+                cards.add(new Card(rs.getString(1), rs.getString(2), rs.getFloat(3)));
+            }
+            deck.setCards(cards);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return deck;
     }
 
 }

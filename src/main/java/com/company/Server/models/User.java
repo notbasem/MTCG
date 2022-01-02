@@ -111,4 +111,17 @@ public class User {
     public void setImage(String image) {
         this.image = image;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "\"id\": \"" + id + "\"," +
+                "\"username\": \"" + username + "\"," +
+                "\"token\": \"" + token + "\"," +
+                "\"coins\": \"" + coins + "\"" +
+                "\"name\": \"" + name + "\"" +
+                "\"bio\": \"" + bio + "\"" +
+                "\"image\": \"" + image + "\"" +
+                "}";
+    }
 }
