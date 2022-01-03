@@ -118,9 +118,9 @@ public class User {
                 "\"id\": \"" + id + "\"," +
                 "\"username\": \"" + username + "\"," +
                 "\"token\": \"" + token + "\"," +
-                "\"coins\": \"" + coins + "\"" +
-                "\"name\": \"" + name + "\"" +
-                "\"bio\": \"" + bio + "\"" +
+                "\"coins\": \"" + coins + "\"," +
+                "\"name\": \"" + name + "\"," +
+                "\"bio\": \"" + bio + "\"," +
                 "\"image\": \"" + image + "\"" +
                 "}";
     }
