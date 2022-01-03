@@ -73,8 +73,30 @@ public class TradeAccess extends DBAccess{
         return new Response(200, "{ \"message\" : \"Trade could be created successfully\" }");
     }
 
+    public Response delete(String tradeId, String token) throws SQLException {
+        try {
+            String userId = new UserAccess().getId(token);
+            if (userId == null) {
+                return new Response(401, "{ \"message\": \"Not Authorized\" }");
+            }
+
+            if (!userId.equals(getUserId(tradeId))) {
+                return new Response(400, "{ \"message\": \"Trade could not be found\" }");
+            }
+
+            PreparedStatement create = connection.prepareStatement(
+                    "DELETE FROM trade WHERE id = ?"
+            );
+            create.setString(1, tradeId);
+            create.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new Response(400, "{ \"message\" : \"Trade could not be deleted\" }");
+        }
+        return new Response(200, "{ \"message\" : \"Trade successfully deleted\" }");
+    }
+
     public Response trade(String tradeId, String cardId, String token) throws SQLException {
-        List<Trade> trades = new ArrayList<>();
         CardAccess cardAccess = new CardAccess();
         try {
             //Checken ob User authorized ist

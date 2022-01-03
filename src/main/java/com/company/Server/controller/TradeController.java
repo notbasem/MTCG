@@ -39,6 +39,18 @@ public class TradeController {
         response.sendResponse(client);
     }
 
+    public void delete(ClientHandler client) throws IOException {
+        String tradeId = client.getUri().replaceAll("/tradings/", "");
+        Response response = null;
+        try {
+            TradeAccess tradeAccess = new TradeAccess();
+            response = tradeAccess.delete(tradeId, client.getToken().replaceAll("Basic ", ""));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        response.sendResponse(client);
+    }
+
     public void trade(ClientHandler client) throws IOException {
         Response response = null;
         try {

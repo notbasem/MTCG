@@ -155,6 +155,12 @@ public class ClientHandler {
             } else {
                 new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
             }
+        } else if (this.getUri().matches("/tradings/[a-z-A-Z0-9\\-]*") && this.getMethod().equals("DELETE")) {
+            if (hasAuthorizationHeader()) {
+                new TradeController().delete(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
         } else if (this.getUri().matches("/tradings/[a-z-A-Z0-9\\-]*") && this.getMethod().equals("POST")) {
             if (hasAuthorizationHeader()) {
                 new TradeController().trade(this);
