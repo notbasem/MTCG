@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,7 +58,7 @@ public class CardAccess extends DBAccess{
 
                 create.setString(1, card.getId());
                 create.setString(2, card.getName());
-                create.setFloat(3, card.getDamage());
+                create.setDouble(3, card.getDamage());
                 create.setString(4, pack.getId());
 
                 create.executeUpdate();
@@ -185,5 +184,124 @@ public class CardAccess extends DBAccess{
             e.printStackTrace();
         }
         System.out.println("Successfully deleted package: " + pack.getId());
+    }
+
+    public boolean userHasCard(String userId, String cardId) {
+        try {
+            PreparedStatement read = connection.prepareStatement(
+                    "SELECT * FROM card " +
+                            "INNER JOIN package p on p.id = card.card_package_id_fk " +
+                            "INNER JOIN \"user\" u on u.id = p.fk_user " +
+                            "WHERE u.id = ? AND card.id = ?"
+            );
+            read.setString(1, userId);
+            read.setString(2, cardId);
+            ResultSet rs = read.executeQuery();
+            if (rs.next()) {
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public Card getCardByCardId(String cardId) {
+        Card card = null;
+        try {
+            PreparedStatement read = connection.prepareStatement(
+                    "SELECT * FROM card " +
+                            "INNER JOIN package p on p.id = card.card_package_id_fk " +
+                            "INNER JOIN \"user\" u on u.id = p.fk_user " +
+                            "WHERE card.id = ?"
+            );
+            read.setString(1, cardId);
+            ResultSet rs = read.executeQuery();
+
+            if (rs.next()) {
+                card = new Card(rs.getString(1), rs.getString(2), rs.getFloat(3));
+                card.setPackageId(rs.getString(4));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return card;
+    }
+
+    public Card getCardByTradeId(String tradeId) {
+        Card card = null;
+        try {
+            PreparedStatement read = connection.prepareStatement(
+                    "SELECT * FROM card " +
+                            "INNER JOIN trade t on card.id = t.fk_card " +
+                            "WHERE t.id = ?"
+            );
+            read.setString(1, tradeId);
+            ResultSet rs = read.executeQuery();
+
+            if (rs.next()) {
+                card = new Card(rs.getString(1), rs.getString(2), rs.getFloat(3));
+                card.setPackageId(rs.getString(4));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return card;
+    }
+
+    public boolean deleteCard(Card card1) {
+        try {
+            PreparedStatement deleteCard = connection.prepareStatement(
+                    "DELETE FROM card " +
+                            "WHERE id = ?"
+            );
+            deleteCard.setString(1, card1.getId());
+            deleteCard.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public boolean createCard(Card card, String packageId) {
+        try {
+            PreparedStatement createCard = connection.prepareStatement(
+                    "INSERT INTO card (id, name, damage, card_package_id_fk) " +
+                            "VALUES (?,?,?,?)"
+            );
+            createCard.setString(1, card.getId());
+            createCard.setString(2, card.getName());
+            createCard.setDouble(3, card.getDamage());
+            createCard.setString(4, packageId);
+            createCard.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public boolean swapCards(Card card1, Card card2) {
+        try {
+            PreparedStatement swapCard1 = connection.prepareStatement(
+                    "UPDATE card " +
+                            "SET card_package_id_fk = ? " +
+                            "WHERE id = ?"
+            );
+            swapCard1.setString(1, card2.getPackageId());
+            swapCard1.setString(2, card1.getId());
+
+            PreparedStatement swapCard2 = connection.prepareStatement(
+                    "UPDATE card " +
+                            "SET card_package_id_fk = ? " +
+                            "WHERE id = ?"
+            );
+            swapCard1.setString(1, card1.getPackageId());
+            swapCard1.setString(2, card2.getId());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

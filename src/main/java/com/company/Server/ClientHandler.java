@@ -85,8 +85,7 @@ public class ClientHandler {
             } else {
                 new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
             }
-        }
-        else if (this.getUri().equals("/sessions") && this.getMethod().equals("POST")) {
+        } else if (this.getUri().equals("/sessions") && this.getMethod().equals("POST")) {
             new UserController().login(this);
         } else if (this.getUri().equals("/packages") && this.getMethod().equals("POST")) {
             if (this.verifyUser("Basic admin-mtcgToken")) {
@@ -141,6 +140,24 @@ public class ClientHandler {
         } else if (this.getUri().equals("/battles") && this.getMethod().equals("POST")) {
             if (hasAuthorizationHeader()) {
                 new BattleController().battle(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        } else if (this.getUri().equals("/tradings") && this.getMethod().equals("GET")) {
+            if (hasAuthorizationHeader()) {
+                new TradeController().read(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        } else if (this.getUri().equals("/tradings") && this.getMethod().equals("POST")) {
+            if (hasAuthorizationHeader()) {
+                new TradeController().create(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        } else if (this.getUri().matches("/tradings/[a-z-A-Z0-9\\-]*") && this.getMethod().equals("POST")) {
+            if (hasAuthorizationHeader()) {
+                new TradeController().trade(this);
             } else {
                 new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
             }

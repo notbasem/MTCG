@@ -221,4 +221,23 @@ public class UserAccess extends DBAccess {
         }
         return user;
     }
+
+    public String getUserByCard(String cardId) {
+        try {
+            PreparedStatement read = connection.prepareStatement(
+                    "SELECT * FROM \"user\" " +
+                            "INNER JOIN package p on \"user\".id = p.fk_user " +
+                            "INNER JOIN card c on p.id = c.card_package_id_fk " +
+                            "WHERE c.id = ?"
+            );
+            read.setString(1, cardId);
+            ResultSet rs = read.executeQuery();
+            if (rs.next()) {
+                return rs.getString(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

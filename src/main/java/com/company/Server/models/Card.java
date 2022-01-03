@@ -6,8 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Card {
     private String id;
     private String name;
-    private float damage;
+    private double damage;
     private String type;
+    private String packageId;
 
     @JsonCreator
     public Card(@JsonProperty("id") String id,
@@ -21,6 +22,7 @@ public class Card {
         } else {
             this.type = "Monster";
         }
+        this.packageId = null;
     }
 
     public String getId() {
@@ -39,11 +41,11 @@ public class Card {
         this.name = name;
     }
 
-    public float getDamage() {
+    public double getDamage() {
         return damage;
     }
 
-    public void setDamage(float damage) {
+    public void setDamage(double damage) {
         this.damage = damage;
     }
 
@@ -55,17 +57,14 @@ public class Card {
         this.type = type;
     }
 
-    /*
-    @Override
-    public String toString() {
-        return "Card{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", damage=" + damage +
-                ", type='" + type + '\'' +
-                '}';
+
+    public String getPackageId() {
+        return packageId;
     }
-    */
+
+    public void setPackageId(String packageId) {
+        this.packageId = packageId;
+    }
 
     @Override
     public String toString() {

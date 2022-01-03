@@ -1,13 +1,10 @@
 package com.company.Server.DatabaseAccess;
 
 import com.company.Server.models.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -248,7 +245,7 @@ public class BattleAccess extends DBAccess {
         return false;
     }
 
-    private float calcDamage(Card card1, Card card2) {
+    private double calcDamage(Card card1, Card card2) {
         if (card1.getName().contains("Spell")) {
             //Effektive Spells
             if (card1.getName().contains("Water") && card2.getName().contains("Fire") ||
