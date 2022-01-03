@@ -1,15 +1,13 @@
 package com.company.Server;
 
-import com.company.Server.controller.DeckController;
-import com.company.Server.controller.PackageController;
-import com.company.Server.controller.StatController;
-import com.company.Server.controller.UserController;
+import com.company.Server.controller.*;
 import com.company.Server.models.Response;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -23,7 +21,7 @@ public class ClientHandler {
     private List<String> headers;
     private String body = "";
 
-    public ClientHandler(Socket client) throws IOException {
+    public ClientHandler(Socket client) throws IOException, SQLException {
         this.client = client;
 
         BufferedReader br = new BufferedReader(new InputStreamReader(this.client.getInputStream()));
@@ -72,7 +70,7 @@ public class ClientHandler {
     }
 
     // TODO: hasAuthheader & verifyUser() besser einsetzen und dadurch if-abfragen geringer machen
-    private void routing() throws IOException {
+    private void routing() throws IOException, SQLException {
         if (this.getUri().equals("/users") && this.getMethod().equals("POST")) {
             new UserController().create(this);
         } else if (this.getUri().matches("/users/\\w+") && this.getMethod().equals("GET")) {
@@ -137,6 +135,12 @@ public class ClientHandler {
         } else if (this.getUri().equals("/score") && this.getMethod().equals("GET")) {
             if (hasAuthorizationHeader()) {
                 new StatController().scoreboard(this);
+            } else {
+                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+            }
+        } else if (this.getUri().equals("/battles") && this.getMethod().equals("POST")) {
+            if (hasAuthorizationHeader()) {
+                new BattleController().battle(this);
             } else {
                 new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
             }
