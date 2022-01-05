@@ -41,8 +41,7 @@ public class Server {
             while (true) {
                 try (Socket client = serverSocket.accept()) {
                     ClientHandler clientHandler = new ClientHandler(client);
-                    Thread thread = new Thread(clientHandler);
-                    thread.start();
+                    new Thread(clientHandler);
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }

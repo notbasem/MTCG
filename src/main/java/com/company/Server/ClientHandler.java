@@ -24,71 +24,66 @@ public class ClientHandler implements Runnable {
 
     public ClientHandler(Socket client) throws IOException, SQLException {
         this.client = client;
-
         this.br = new BufferedReader(new InputStreamReader(this.client.getInputStream()));
-
-        StringBuilder requestBuilder = new StringBuilder();
-        String line;
-        while (!(line = br.readLine()).isBlank()) {
-            System.out.println(line);
-            requestBuilder.append(line + "\r\n");
-        }
-
-        String request = requestBuilder.toString();
-        String[] requestsLines = request.split("\r\n");
-        String[] requestLine = requestsLines[0].split(" ");
-        this.method = requestLine[0];
-        this.uri = requestLine[1];
-        this.version = requestLine[2];
-        this.host = requestsLines[1].split(" ")[1];
-        this.headers = Arrays.stream(requestsLines).skip(2).collect(Collectors.toList());
-        System.out.println(headers);
-
-        //Mittels Java Streams schauen ob Content-Length vorhanden ist und initialisieren
-        if(headers.stream().anyMatch(x -> x.contains("Content-Length"))) {
-            this.contentLength = Integer.parseInt(String.valueOf(headers.stream()
-                            .filter(x -> x.contains("Content-Length"))
-                            .findFirst())
-                            .replaceAll("\\D", ""));
-
-            System.out.println("CONTENT-LENGTH: " + this.contentLength);
-
-            if (contentLength > 0) {
-                //Body auslesen und in this.body speichern
-                int read;
-                while ((read = br.read()) != -1) {
-                    this.body += (char) read;
-                    if (this.body.length() == this.contentLength) {
-                        break;
-                    }
-                }
-            }
-            System.out.println(body);
-        }
-
-        //routing() aufrufen, um zu den entsprechenden Controllern zu gelangen
-        //routing();
     }
 
     @Override
     public void run() {
+        System.out.println(Thread.currentThread());
         try {
-            routing();
-        } catch (IOException | SQLException e) {
-            System.err.println(Thread.currentThread().getName() + " Error: " + e.getMessage());
-        } finally {
-            try {
-                if (this.br != null) {
-                    this.br.close();
-                    this.client.close();
+            StringBuilder requestBuilder = new StringBuilder();
+            String line = this.br.readLine();
+            if (line != null) {
+                System.out.println(line);
+                requestBuilder.append(line + "\r\n");
+
+                while (!line.isEmpty()) {
+                    line = this.br.readLine();
+                    System.out.println(line);
+                    requestBuilder.append(line + "\r\n");
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+
+                String request = requestBuilder.toString();
+                List<String> requestLines = List.of(request.split("\r\n"));
+                String[] requestLine = requestLines.get(0).split(" ");
+                this.method = requestLine[0];
+                this.uri = requestLine[1];
+                this.version = requestLine[2];
+                this.host = requestLines.get(0).split(" ")[1];
+                this.headers = requestLines.stream().skip(2).collect(Collectors.toList());
+                System.out.println(headers);
+
+                //Mittels Java Streams schauen ob Content-Length vorhanden ist und initialisieren
+                if (headers.stream().anyMatch(x -> x.contains("Content-Length"))) {
+                    this.contentLength = Integer.parseInt(String.valueOf(headers.stream()
+                                    .filter(x -> x.contains("Content-Length"))
+                                    .findFirst())
+                            .replaceAll("\\D", ""));
+
+                    System.out.println("CONTENT-LENGTH: " + this.contentLength);
+
+                    if (contentLength > 0) {
+                        //Body auslesen und in this.body speichern
+                        int read;
+                        while ((read = br.read()) != -1) {
+                            this.body += (char) read;
+                            if (this.body.length() == this.contentLength) {
+                                break;
+                            }
+                        }
+                    }
+                    System.out.println(body);
+                }
+
+                //routing() aufrufen, um zu den entsprechenden Controllern zu gelangen
+                routing();
             }
+        } catch(IOException | SQLException e){
+            e.printStackTrace();
         }
     }
 
-    // TODO: hasAuthheader & verifyUser() besser einsetzen und dadurch if-abfragen geringer machen
+        // TODO: hasAuthheader & verifyUser() besser einsetzen und dadurch if-abfragen geringer machen
     private void routing() throws IOException, SQLException {
         if (this.getUri().equals("/users") && this.getMethod().equals("POST")) {
             new UserController().create(this);
