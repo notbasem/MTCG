@@ -12,7 +12,7 @@ public class BattleAccess extends DBAccess {
     public BattleAccess() throws SQLException {
     }
 
-    public Battle createOrJoin(String token) {
+    public Battle createOrJoin(String token) throws SQLException {
         Battle battle = null;
         try {
             PreparedStatement createOrJoin = connection.prepareStatement(
@@ -39,7 +39,7 @@ public class BattleAccess extends DBAccess {
         return battle;
     }
 
-    private Battle createBattle () {
+    private Battle createBattle () throws SQLException {
         Battle battle = null;
         try {
             PreparedStatement create = connection.prepareStatement(
@@ -59,7 +59,7 @@ public class BattleAccess extends DBAccess {
         return battle;
     }
 
-    private Battle addPlayer (Battle battle, String token) {
+    private Battle addPlayer (Battle battle, String token) throws SQLException {
         try {
             String userId = new UserAccess().getId(token);
             PreparedStatement create;
@@ -89,7 +89,7 @@ public class BattleAccess extends DBAccess {
         return battle;
     }
 
-    private Battle getBattle (String battleId) {
+    private Battle getBattle (String battleId) throws SQLException {
         System.out.println(battleId);
         Battle battle = null;
         try {
@@ -115,15 +115,13 @@ public class BattleAccess extends DBAccess {
         } else if (battle.getPlayer1() == null || battle.getPlayer2() == null) {
             return new Response(200, "{ \"message\" : \"Warten auf Spieler...\"}");
         }
-        UserAccess userAccess = new UserAccess();
-        User player1 = userAccess.getUser(battle.getPlayer1());
-        User player2 = userAccess.getUser(battle.getPlayer2());
+        User player1 = new UserAccess().getUser(battle.getPlayer1());
+        User player2 = new UserAccess().getUser(battle.getPlayer2());
         System.out.println("PLAYER 1: " + player1);
         System.out.println("PLAYER 2: " + player2);
 
-        DeckAccess deckAccess = new DeckAccess();
-        Deck deck1 = deckAccess.getDeck(battle.getPlayer1());
-        Deck deck2 = deckAccess.getDeck(battle.getPlayer2());
+        Deck deck1 = new DeckAccess().getDeck(battle.getPlayer1());
+        Deck deck2 = new DeckAccess().getDeck(battle.getPlayer2());
 
         //Max 100 Runden möglich
         for (int i = 0; i < 100; i++) {
@@ -131,7 +129,6 @@ public class BattleAccess extends DBAccess {
             System.out.println("Size Deck1:" + deck1.getCards().size());
             System.out.println("Size Deck2:" + deck2.getCards().size());
             if (deck1.getCards().size() == 0) {
-                //TODO: Als Winner eintragen + Stats eintragen
                 battle.setWinner(player2.getId());
                 System.out.println("Player2 hat gewonnen");
                 setWinner(battle);
@@ -140,7 +137,6 @@ public class BattleAccess extends DBAccess {
                         "\"Winner:\" " + player1 +
                         "}");
             } else if (deck2.getCards().size() == 0) {
-                //TODO: Als Winner eintragen + Stats eintragen
                 battle.setWinner(player1.getId());
                 System.out.println("Player1 hat gewonnen");
                 setWinner(battle);
@@ -269,7 +265,7 @@ public class BattleAccess extends DBAccess {
         return card1.getDamage();
     }
 
-    private void newRound(Round round) {
+    private void newRound(Round round) throws SQLException {
         try {
             PreparedStatement create = connection.prepareStatement(
                     "INSERT INTO round (id, fk_card1, fk_card2, fk_winner_card, fk_battle) VALUES (?,?,?,?,?)"
@@ -289,7 +285,7 @@ public class BattleAccess extends DBAccess {
         }
     }
 
-    private void setWinner(Battle battle) {
+    private void setWinner(Battle battle) throws SQLException {
         try {
             PreparedStatement setWinner = connection.prepareStatement(
                     "UPDATE battle SET fk_winner = ? WHERE id = ?"
@@ -302,7 +298,7 @@ public class BattleAccess extends DBAccess {
         }
     }
 
-    private void updateStats(Battle battle) {
+    private void updateStats(Battle battle) throws SQLException {
         try {
             PreparedStatement updateWinner = connection.prepareStatement(
                     "UPDATE stat SET elo = elo + 3 WHERE fk_user = ?"
@@ -326,8 +322,4 @@ public class BattleAccess extends DBAccess {
             e.printStackTrace();
         }
     }
-
-
-
-
 }

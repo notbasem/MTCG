@@ -16,7 +16,7 @@ public class StatAccess extends DBAccess{
     public StatAccess() throws SQLException {
     }
 
-    public void create(Stat stat) {
+    public void create(Stat stat) throws SQLException {
         System.out.println(stat.getUserId());
         try {
             PreparedStatement create = connection.prepareStatement(
@@ -27,10 +27,12 @@ public class StatAccess extends DBAccess{
             create.execute();
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            connection.close();
         }
     }
 
-    public Response read(String token) {
+    public Response read(String token) throws SQLException {
         Stat stat = new Stat(null);
         try {
             PreparedStatement read = connection.prepareStatement(
@@ -51,12 +53,14 @@ public class StatAccess extends DBAccess{
         } catch (SQLException e) {
             e.printStackTrace();
             return new Response(400, "{ \"message\": \"Stats konnten nicht ausgelesen werden\" }");
+        } finally {
+            connection.close();
         }
         return new Response(200, "{ \"message\": \"Stats konnten erfolgreich ausgelesen werden\", " +
                 "\"stats\": " + stat +" }");
     }
 
-    public Response scoreboard(String token) {
+    public Response scoreboard(String token) throws SQLException {
 
         List<Scoreboard> scoreboard = new ArrayList<>();
         try {
@@ -91,6 +95,8 @@ public class StatAccess extends DBAccess{
         } catch (SQLException e) {
             e.printStackTrace();
             return new Response(400, "{ \"message\": \"Scoreboard konnten nicht ausgelesen werden\" }");
+        } finally {
+            connection.close();
         }
         return new Response(200, "{ \"message\": \"Scoreboard konnten erfolgreich ausgelesen werden\", " +
                 "\"stats\": " + scoreboard +" }");

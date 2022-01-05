@@ -43,7 +43,6 @@ public class CardAccess extends DBAccess{
             e.printStackTrace();
         }
 
-
         //Split JSON into several objects to create several cards
         while (matcher.find()) {
             Card card = objectMapper.readValue(matcher.group(0), Card.class);
@@ -70,11 +69,11 @@ public class CardAccess extends DBAccess{
         }
         pack.setCards(cards);
         System.out.println(pack.getCards());
-
+        connection.close();
         return new Response(200, "{ \"message\" : \"Cards erfolgreich erstellt\" }");
     }
 
-    public Response readCards(String token) {
+    public Response readCards(String token) throws SQLException {
         ArrayList<Card> cards = new ArrayList<>();
         try {
             //Package erstellen
@@ -91,6 +90,8 @@ public class CardAccess extends DBAccess{
         } catch (SQLException e) {
             e.printStackTrace();
             return new Response(400, "{ \"message\" : \"Cards konnten nicht gelesen werden\" }");
+        } finally {
+            connection.close();
         }
 
 
@@ -130,6 +131,7 @@ public class CardAccess extends DBAccess{
                 acquirePackage.setString(2, rs.getString(1));
                 acquirePackage.executeUpdate();
             } else {
+                connection.close();
                 return new Response(400, "{ \"message\" : \"No packages avaliable\" }");
             }
 
@@ -139,16 +141,18 @@ public class CardAccess extends DBAccess{
             if (coins == -1) {
                 System.out.println(coins);
                 //Wenn nicht erfolgreich --> Fehlermeldung
+                connection.close();
                 return new Response(400, "{ \"message\" : \"Package could not be acquired\" }");
             }
             System.out.println("Coins danach: " +coins);
-
+            connection.close();
             return new Response(200, "{ \"message\" : \"Package could be acquired\" }");
         }
+        connection.close();
         return new Response(400, "{ \"message\" : \"Package could not be acquired. To few coins.\" }");
     }
 
-    public ArrayList<Card> get4Cards(String token) {
+    public ArrayList<Card> get4Cards(String token) throws SQLException {
         ArrayList<Card> cards = new ArrayList<>();
         try {
             //Package erstellen
@@ -169,11 +173,13 @@ public class CardAccess extends DBAccess{
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
+        } finally {
+            connection.close();
         }
         return cards;
     }
 
-    private void deletePackage(Package pack) {
+    private void deletePackage(Package pack) throws SQLException {
         try {
             PreparedStatement delete = connection.prepareStatement(
                     "DELETE FROM mtcg.public.package WHERE id = ?"
@@ -182,11 +188,13 @@ public class CardAccess extends DBAccess{
             delete.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            connection.close();
         }
         System.out.println("Successfully deleted package: " + pack.getId());
     }
 
-    public boolean userHasCard(String userId, String cardId) {
+    public boolean userHasCard(String userId, String cardId) throws SQLException {
         try {
             PreparedStatement read = connection.prepareStatement(
                     "SELECT * FROM card " +
@@ -202,11 +210,13 @@ public class CardAccess extends DBAccess{
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            connection.close();
         }
         return false;
     }
 
-    public Card getCardByCardId(String cardId) {
+    public Card getCardByCardId(String cardId) throws SQLException {
         Card card = null;
         try {
             PreparedStatement read = connection.prepareStatement(
@@ -224,11 +234,13 @@ public class CardAccess extends DBAccess{
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            connection.close();
         }
         return card;
     }
 
-    public Card getCardByTradeId(String tradeId) {
+    public Card getCardByTradeId(String tradeId) throws SQLException {
         Card card = null;
         try {
             PreparedStatement read = connection.prepareStatement(
@@ -245,11 +257,13 @@ public class CardAccess extends DBAccess{
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            connection.close();
         }
         return card;
     }
 
-    public boolean deleteCard(Card card1) {
+    public boolean deleteCard(Card card1) throws SQLException {
         try {
             PreparedStatement deleteCard = connection.prepareStatement(
                     "DELETE FROM card " +
@@ -260,11 +274,13 @@ public class CardAccess extends DBAccess{
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
+        } finally {
+            connection.close();
         }
         return true;
     }
 
-    public boolean createCard(Card card, String packageId) {
+    public boolean createCard(Card card, String packageId) throws SQLException {
         try {
             PreparedStatement createCard = connection.prepareStatement(
                     "INSERT INTO card (id, name, damage, card_package_id_fk) " +
@@ -278,30 +294,9 @@ public class CardAccess extends DBAccess{
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
+        } finally {
+            connection.close();
         }
         return true;
-    }
-
-    public boolean swapCards(Card card1, Card card2) {
-        try {
-            PreparedStatement swapCard1 = connection.prepareStatement(
-                    "UPDATE card " +
-                            "SET card_package_id_fk = ? " +
-                            "WHERE id = ?"
-            );
-            swapCard1.setString(1, card2.getPackageId());
-            swapCard1.setString(2, card1.getId());
-
-            PreparedStatement swapCard2 = connection.prepareStatement(
-                    "UPDATE card " +
-                            "SET card_package_id_fk = ? " +
-                            "WHERE id = ?"
-            );
-            swapCard1.setString(1, card1.getPackageId());
-            swapCard1.setString(2, card2.getId());
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 }
