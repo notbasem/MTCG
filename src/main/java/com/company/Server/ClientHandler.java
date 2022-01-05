@@ -11,8 +11,9 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ClientHandler {
+public class ClientHandler implements Runnable {
     private Socket client;
+    private BufferedReader br;
     private String method;
     private String uri;
     private String version;
@@ -24,7 +25,7 @@ public class ClientHandler {
     public ClientHandler(Socket client) throws IOException, SQLException {
         this.client = client;
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(this.client.getInputStream()));
+        this.br = new BufferedReader(new InputStreamReader(this.client.getInputStream()));
 
         StringBuilder requestBuilder = new StringBuilder();
         String line;
@@ -66,7 +67,25 @@ public class ClientHandler {
         }
 
         //routing() aufrufen, um zu den entsprechenden Controllern zu gelangen
-        routing();
+        //routing();
+    }
+
+    @Override
+    public void run() {
+        try {
+            routing();
+        } catch (IOException | SQLException e) {
+            System.err.println(Thread.currentThread().getName() + " Error: " + e.getMessage());
+        } finally {
+            try {
+                if (this.br != null) {
+                    this.br.close();
+                    this.client.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     // TODO: hasAuthheader & verifyUser() besser einsetzen und dadurch if-abfragen geringer machen
