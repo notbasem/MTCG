@@ -123,6 +123,7 @@ public class TradeAccess extends DBAccess{
                 return new Response(401, "{ \"message\": \"Trade does not exist\" }");
             }
 
+            //Trade mit sich selbst verhindern
             if (user1Id.equals(user2Id)) {
                 return new Response(400, "{ \"message\" : \"Can't trade with yourself\" }");
             }
@@ -131,12 +132,17 @@ public class TradeAccess extends DBAccess{
             Card card2 = new CardAccess().getCardByTradeId(tradeId);
             String package1 = card1.getPackageId();
             String package2 = card2.getPackageId();
+            Trade trade = getTrade(tradeId);
 
-            System.out.println("DELETE1: " + new CardAccess().deleteCard(card1));
-            System.out.println("DELETE2: " + new CardAccess().deleteCard(card2));
+            if (trade.getType().equals(card1.getType()) && card1.getDamage() >= trade.getMinimumDamage()) {
+                System.out.println("DELETE1: " + new CardAccess().deleteCard(card1));
+                System.out.println("DELETE2: " + new CardAccess().deleteCard(card2));
 
-            System.out.println("CREATE1: " + new CardAccess().createCard(card1, package2));
-            System.out.println("CREATE1: " + new CardAccess().createCard(card2, package1));
+                System.out.println("CREATE1: " + new CardAccess().createCard(card1, package2));
+                System.out.println("CREATE1: " + new CardAccess().createCard(card2, package1));
+            } else {
+                return new Response(400, "{ \"message\" : \"Requirements could not be met. Trade failed.\" }");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             return new Response(400, "{ \"message\" : \"Trade could not be fulfilled\" }");
@@ -156,6 +162,27 @@ public class TradeAccess extends DBAccess{
 
             if (rs.next()) {
                 return rs.getString(1);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private Trade getTrade(String tradeId) throws SQLException {
+        try {
+            PreparedStatement read = connection.prepareStatement(
+                    "SELECT * FROM trade WHERE id = ?"
+            );
+            read.setString(1, tradeId);
+            ResultSet rs = read.executeQuery();
+
+            if (rs.next()) {
+                Trade trade = new Trade(rs.getString(1), rs.getString(2), rs.getString(3),
+                        rs.getFloat(4));
+                trade.setUserId(rs.getString(5));
+                return trade;
             }
 
         } catch (SQLException e) {
