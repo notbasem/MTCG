@@ -134,6 +134,7 @@ public class TradeAccess extends DBAccess{
             String package2 = card2.getPackageId();
             Trade trade = getTrade(tradeId);
 
+            //Kontrollieren, ob trade reqiurements erfüllt sind (type, minDamage)
             if (trade.getType().equals(card1.getType()) && card1.getDamage() >= trade.getMinimumDamage()) {
                 System.out.println("DELETE1: " + new CardAccess().deleteCard(card1));
                 System.out.println("DELETE2: " + new CardAccess().deleteCard(card2));
