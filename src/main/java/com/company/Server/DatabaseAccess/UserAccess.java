@@ -75,11 +75,15 @@ public class UserAccess extends DBAccess {
             //Passwort hash des Users zum vergleichen holen
             ResultSet rs = read.executeQuery();
             String hash = null;
-            while (rs.next()) {
+            if (rs.next()) {
                 hash = rs.getString("password");
             }
             rs.close();
             read.close();
+
+            if (hash == null) {
+                return new Response(401, "{ \"message\": \"Username und Passwort stimmen nicht überein\" }" );
+            }
 
             //Passwörter miteinander vergleichen
             BCrypt.Result result = BCrypt.verifyer().verify(user.getPassword().toCharArray(), hash);
@@ -115,6 +119,8 @@ public class UserAccess extends DBAccess {
                         rs.getString(7), rs.getString(8)
                 );
                 userJson = objectMapper.writeValueAsString(user);
+                return new Response(200, "{ \"message\": \"User konnte erfolgreich ausgelesen werden\"," +
+                        "\"user\":" + userJson + "}" );
             }
         } catch (SQLException | JsonProcessingException e) {
             e.printStackTrace();
@@ -122,11 +128,14 @@ public class UserAccess extends DBAccess {
         } finally {
             connection.close();
         }
-        return new Response(200, "{ \"message\": \"User konnte erfolgreich ausgelesen werden\"," +
-                "\"user\":" + userJson + "}" );
+        return new Response(400, "{ \"message\": \"User konnte nicht ausgelesen werden\" }");
     }
 
     public Response update(String body, String token) throws SQLException {
+        String userId = new UserAccess().getId(token);
+        if (userId == null) {
+            return new Response(400, "{ \"message\": \"User konnte nicht geupdated werden\" }");
+        }
         Map<String, String> json = new TreeMap<>();
         Pattern p = Pattern.compile("\"(\\w+)\":\\s*\"(.*?)\"");
         Matcher m = p.matcher(body);
