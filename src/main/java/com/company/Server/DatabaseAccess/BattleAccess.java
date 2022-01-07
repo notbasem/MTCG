@@ -5,8 +5,11 @@ import com.company.Server.models.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class BattleAccess extends DBAccess {
     public BattleAccess() throws SQLException {
@@ -124,17 +127,18 @@ public class BattleAccess extends DBAccess {
         Deck deck2 = new DeckAccess().getDeck(battle.getPlayer2());
 
         //Max 100 Runden möglich
-        for (int i = 0; i < 100; i++) {
-            System.out.println("Round " + (i+1) + ":");
+        for (int i = 1; i <= 100; i++) {
+            System.out.println("Round " + i + ":");
             System.out.println("Size Deck1:" + deck1.getCards().size());
             System.out.println("Size Deck2:" + deck2.getCards().size());
+
             if (deck1.getCards().size() == 0) {
                 battle.setWinner(player2.getId());
                 System.out.println("Player2 hat gewonnen");
                 setWinner(battle);
                 updateStats(battle);
                 return new Response(200, "{ \"message\" : \"Battle abgeschlossen\"," +
-                        "\"Winner:\" " + player1 +
+                        "\"Winner\": " + player1 +
                         "}");
             } else if (deck2.getCards().size() == 0) {
                 battle.setWinner(player1.getId());
@@ -142,7 +146,7 @@ public class BattleAccess extends DBAccess {
                 setWinner(battle);
                 updateStats(battle);
                 return new Response(200, "{ \"message\" : \"Battle abgeschlossen\"," +
-                        "\"Winner:\" " + player2 +
+                        "\"Winner\": " + player2 +
                         "}");
             }
 
@@ -153,6 +157,16 @@ public class BattleAccess extends DBAccess {
             Card winner=null;
             System.out.println(card1);
             System.out.println(card2);
+
+            //Uniqe Feature: alle 5 Runden kommt ein random multiplier dazu:
+            if (i%5 == 0) {
+                double multiplier1 = getMultiplier();
+                double multiplier2 = getMultiplier();
+                card1.setDamage(card1.getDamage() * multiplier1);
+                card2.setDamage(card2.getDamage() * multiplier2);
+                System.out.println("Multiplier1: " + multiplier1);
+                System.out.println("Multiplier2: " + multiplier2);
+            }
 
             if (cardWins(card1, card2) || calcDamage(card1, card2) > calcDamage(card2, card1)) {
                 winner = card1;
@@ -180,7 +194,7 @@ public class BattleAccess extends DBAccess {
             setWinner(battle);
             updateStats(battle);
             return new Response(200, "{ \"message\" : \"Battle abgeschlossen\"," +
-                    "\"Winner:\" " + player1 +
+                    "\"Winner\": " + player1 +
                     "}");
         } else if (deck2.getCards().size() > deck1.getCards().size()) {
             battle.setWinner(player2.getId());
@@ -188,7 +202,7 @@ public class BattleAccess extends DBAccess {
             setWinner(battle);
             updateStats(battle);
             return new Response(200, "{ \"message\" : \"Battle abgeschlossen\"," +
-                    "\"Winner:\" " + player2 +
+                    "\"Winner\": " + player2 +
                     "}");
         }
 
@@ -321,5 +335,18 @@ public class BattleAccess extends DBAccess {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private Double getMultiplier() {
+        List<Double> list = new ArrayList<>();
+        list.add(0.25);
+        list.add(0.50);
+        list.add(0.75);
+        list.add(1.00);
+        list.add(1.25);
+        list.add(1.50);
+        list.add(1.75);
+        list.add(2.00);
+        return list.get((ThreadLocalRandom.current().nextInt(0, list.size())));
     }
 }
