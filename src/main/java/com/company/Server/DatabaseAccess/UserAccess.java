@@ -145,6 +145,10 @@ public class UserAccess extends DBAccess {
             json.put(m.group(1), m.group(2));
         }
 
+        if (json.size() < 3) {
+            return new Response(400, "{ \"message\": \"User konnte nicht geupdated werden\" }");
+        }
+
         try {
             PreparedStatement updateUser = connection.prepareStatement(
                     "UPDATE mtcg.public.user SET name=?, bio=?, image=? WHERE token = ?"

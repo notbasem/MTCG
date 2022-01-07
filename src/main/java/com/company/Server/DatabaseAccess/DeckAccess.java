@@ -30,13 +30,6 @@ public class DeckAccess extends DBAccess {
         }
     }
 
-    /**
-     * TODO: Bei Decks werden random Cards zurückgegeben.
-     * TODO: Es sollten stattdessen irgendwo ein standard Random Deck angelegt werden
-     * TODO: (z.B beim ersten Kauf eines Packs) und danach Decks ausgegeben werden.
-     * @param token
-     * @return
-     */
     public Response read(String token) throws SQLException {
         ArrayList<Card> deck = new ArrayList<>();
         System.out.println("Is Deck Set: " + isDeckSet(token));
