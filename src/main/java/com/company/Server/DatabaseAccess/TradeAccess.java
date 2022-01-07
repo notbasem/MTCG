@@ -141,6 +141,7 @@ public class TradeAccess extends DBAccess{
 
                 System.out.println("CREATE1: " + new CardAccess().createCard(card1, package2));
                 System.out.println("CREATE1: " + new CardAccess().createCard(card2, package1));
+                delete(tradeId);
             } else {
                 return new Response(400, "{ \"message\" : \"Requirements could not be met. Trade failed.\" }");
             }
@@ -192,5 +193,15 @@ public class TradeAccess extends DBAccess{
         return null;
     }
 
-
+    private void delete(String tradeId) {
+        try {
+            PreparedStatement delete = connection.prepareStatement(
+                    "DELETE FROM trade WHERE id = ?"
+            );
+            delete.setString(1, tradeId);
+            delete.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

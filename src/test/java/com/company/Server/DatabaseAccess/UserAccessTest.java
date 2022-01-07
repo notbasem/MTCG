@@ -73,28 +73,38 @@ class UserAccessTest {
         assertEquals(400, new UserAccess().update(body, user2.getToken()).getStatus());
     }
 
-
     @Test
     @Order(8)
+    void testUpdateFalseJSON() throws SQLException {
+        String body = "{\n" +
+                "  \"Name\": \"false\",\n" +
+                "  \"Bio\": \"false...\",\n" +
+                "}";
+        assertEquals(400, new UserAccess().update(body, user1.getToken()).getStatus());
+    }
+
+
+    @Test
+    @Order(9)
     void testGetCoinsTrue() throws SQLException {
         assertEquals(20, new UserAccess().getCoins(user1.getToken()));
     }
 
     @Test
-    @Order(9)
+    @Order(10)
     void testGetCoinsFalse() throws SQLException {
         assertEquals(-1, new UserAccess().getCoins(user2.getToken()));
     }
 
 
     @Test
-    @Order(10)
+    @Order(11)
     void testBuyPackageTrue() throws SQLException {
         assertEquals(15, new UserAccess().buyPackage(user1.getToken()));
     }
 
     @Test
-    @Order(11)
+    @Order(12)
     void testBuyPackageFalse() throws SQLException {
         assertEquals(-1, new UserAccess().buyPackage(user2.getToken()));
     }
