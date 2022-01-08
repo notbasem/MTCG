@@ -30,14 +30,7 @@ public class DeckAccess extends DBAccess {
         }
     }
 
-    /**
-     * TODO: Bei Decks werden random Cards zurückgegeben.
-     * TODO: Es sollten stattdessen irgendwo ein standard Random Deck angelegt werden
-     * TODO: (z.B beim ersten Kauf eines Packs) und danach Decks ausgegeben werden.
-     * @param token
-     * @return
-     */
-    public Response read(String token) {
+    public Response read(String token) throws SQLException {
         ArrayList<Card> deck = new ArrayList<>();
         System.out.println("Is Deck Set: " + isDeckSet(token));
         if (!isDeckSet(token)) { //Wenn das Deck noch nicht gesetzt wurde
@@ -85,6 +78,7 @@ public class DeckAccess extends DBAccess {
                 return new Response(400, "{ \"message\" : \"Deck konnte nicht ausgelesen werden\" }");
             }
         }
+        connection.close();
         return new Response(200, "{ \"message\" : \"Deck erfolgreich ausgelesen\", " +
                 "\"deck\":" + deck +" }");
     }
@@ -111,11 +105,13 @@ public class DeckAccess extends DBAccess {
         } catch (SQLException e) {
             e.printStackTrace();
             return new Response(400, "{ \"message\" : \"Deck konnte nicht überschrieben werden\" }");
+        } finally {
+            connection.close();
         }
         return new Response(200, "{ \"message\" : \"Deck erfolgreich überschrieben\"}");
     }
 
-    private boolean isDeckSet(String token) {
+    private boolean isDeckSet(String token) throws SQLException {
         try {
             PreparedStatement readDeck = connection.prepareStatement(
                     "SELECT * FROM mtcg.public.deck INNER JOIN mtcg.public.user u on deck.fk_user = u.id " +
@@ -137,7 +133,7 @@ public class DeckAccess extends DBAccess {
         return true;
     }
 
-    public Response readPlain(String token) {
+    public Response readPlain(String token) throws SQLException {
         ArrayList<Card> deck = new ArrayList<>();
         System.out.println("Is Deck Set: " + isDeckSet(token));
         if (!isDeckSet(token)) { //Wenn das Deck noch nicht gesetzt wurde
@@ -160,6 +156,8 @@ public class DeckAccess extends DBAccess {
             } catch (SQLException e) {
                 e.printStackTrace();
                 return new Response(400, "{ \"message\" : \"Deck konnte nicht ausgelesen werden\" }");
+            } finally {
+                connection.close();
             }
         } else { //Wenn das Deck bereits gesetzt wurde
             try {
@@ -183,12 +181,14 @@ public class DeckAccess extends DBAccess {
             } catch (SQLException e) {
                 e.printStackTrace();
                 return new Response(400, "{ \"message\" : \"Deck konnte nicht ausgelesen werden\" }");
+            }  finally {
+                connection.close();
             }
         }
         return new Response(200, "{ \"deck\":" + deck +" }");
     }
 
-    public Deck getDeck(String userId) {
+    public Deck getDeck(String userId) throws SQLException {
         Deck deck = null;
         List<Card> cards = new ArrayList<>();
         try {
@@ -221,6 +221,8 @@ public class DeckAccess extends DBAccess {
             deck.setCards(cards);
         } catch (SQLException e) {
             e.printStackTrace();
+        }  finally {
+            connection.close();
         }
         return deck;
     }

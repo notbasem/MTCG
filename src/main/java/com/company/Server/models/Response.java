@@ -14,6 +14,11 @@ public class Response {
         this.response = response;
     }
 
+    public Response() {
+        this.status = -1;
+        this.response = null;
+    }
+
     public int getStatus() {
         return status;
     }
@@ -28,6 +33,12 @@ public class Response {
 
     public void setResponse(String response) {
         this.response = response;
+    }
+
+    public void sendNotAuthorized(ClientHandler client) throws IOException {
+        this.status = 401;
+        this.response = "{ \"message\": \"Not Authorized\" }";
+        sendResponse(client);
     }
 
     public void sendResponseHeaders(ClientHandler client) throws IOException {

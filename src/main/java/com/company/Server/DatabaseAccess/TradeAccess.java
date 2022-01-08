@@ -37,6 +37,8 @@ public class TradeAccess extends DBAccess{
         } catch (SQLException e) {
             e.printStackTrace();
             return new Response(400, "{ \"message\" : \"Trades could not be read\" }");
+        } finally {
+            connection.close();
         }
         return new Response(200, "{ \"message\" : \"Trades could be read successfully\"," +
                 "\"Trades\": " + trades + "}");
@@ -69,6 +71,8 @@ public class TradeAccess extends DBAccess{
         } catch (SQLException e) {
             e.printStackTrace();
             return new Response(400, "{ \"message\" : \"Trade could not be created\" }");
+        } finally {
+            connection.close();
         }
         return new Response(200, "{ \"message\" : \"Trade could be created successfully\" }");
     }
@@ -92,12 +96,13 @@ public class TradeAccess extends DBAccess{
         } catch (SQLException e) {
             e.printStackTrace();
             return new Response(400, "{ \"message\" : \"Trade could not be deleted\" }");
+        } finally {
+            connection.close();
         }
         return new Response(200, "{ \"message\" : \"Trade successfully deleted\" }");
     }
 
     public Response trade(String tradeId, String cardId, String token) throws SQLException {
-        CardAccess cardAccess = new CardAccess();
         try {
             //Checken ob User authorized ist
             //User1 ist der, der die Anfrage schickt
@@ -107,7 +112,7 @@ public class TradeAccess extends DBAccess{
             }
 
             //Checken ob User die Karte besitzt, die er traden will
-            if (!cardAccess.userHasCard(user1Id, cardId)) {
+            if (!(new CardAccess().userHasCard(user1Id, cardId))) {
                 return new Response(400, "{ \"message\": \"User besitzt die Karte nicht\" }");
             }
 
@@ -118,28 +123,38 @@ public class TradeAccess extends DBAccess{
                 return new Response(401, "{ \"message\": \"Trade does not exist\" }");
             }
 
+            //Trade mit sich selbst verhindern
             if (user1Id.equals(user2Id)) {
                 return new Response(400, "{ \"message\" : \"Can't trade with yourself\" }");
             }
 
-            Card card1 = cardAccess.getCardByCardId(cardId);
-            Card card2 = cardAccess.getCardByTradeId(tradeId);
+            Card card1 = new CardAccess().getCardByCardId(cardId);
+            Card card2 = new CardAccess().getCardByTradeId(tradeId);
             String package1 = card1.getPackageId();
             String package2 = card2.getPackageId();
+            Trade trade = getTrade(tradeId);
 
-            System.out.println("DELETE1: " + cardAccess.deleteCard(card1));
-            System.out.println("DELETE2: " + cardAccess.deleteCard(card2));
+            //Kontrollieren, ob trade reqiurements erfüllt sind (type, minDamage)
+            if (trade.getType().equals(card1.getType()) && card1.getDamage() >= trade.getMinimumDamage()) {
+                System.out.println("DELETE1: " + new CardAccess().deleteCard(card1));
+                System.out.println("DELETE2: " + new CardAccess().deleteCard(card2));
 
-            System.out.println("CREATE1: " + cardAccess.createCard(card1, package2));
-            System.out.println("CREATE1: " + cardAccess.createCard(card2, package1));
+                System.out.println("CREATE1: " + new CardAccess().createCard(card1, package2));
+                System.out.println("CREATE1: " + new CardAccess().createCard(card2, package1));
+                delete(tradeId);
+            } else {
+                return new Response(400, "{ \"message\" : \"Requirements could not be met. Trade failed.\" }");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             return new Response(400, "{ \"message\" : \"Trade could not be fulfilled\" }");
+        } finally {
+            connection.close();
         }
         return new Response(200, "{ \"message\" : \"Trade fulfilled successfully\" }");
     }
 
-    private String getUserId(String tradeId) {
+    private String getUserId(String tradeId) throws SQLException {
         try {
             PreparedStatement read = connection.prepareStatement(
                     "SELECT fk_user FROM trade WHERE id = ?"
@@ -157,5 +172,36 @@ public class TradeAccess extends DBAccess{
         return null;
     }
 
+    private Trade getTrade(String tradeId) throws SQLException {
+        try {
+            PreparedStatement read = connection.prepareStatement(
+                    "SELECT * FROM trade WHERE id = ?"
+            );
+            read.setString(1, tradeId);
+            ResultSet rs = read.executeQuery();
 
+            if (rs.next()) {
+                Trade trade = new Trade(rs.getString(1), rs.getString(2), rs.getString(3),
+                        rs.getFloat(4));
+                trade.setUserId(rs.getString(5));
+                return trade;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private void delete(String tradeId) {
+        try {
+            PreparedStatement delete = connection.prepareStatement(
+                    "DELETE FROM trade WHERE id = ?"
+            );
+            delete.setString(1, tradeId);
+            delete.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
