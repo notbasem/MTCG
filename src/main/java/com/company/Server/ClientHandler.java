@@ -100,7 +100,7 @@ public class ClientHandler implements Runnable {
             if (this.verifyUser("Basic admin-mtcgToken")) {
                 new PackageController().create(this);
             } else {
-                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+                new Response().sendNotAuthorized(this);
             }
         } else if (requestEquals("/packages", "GET")) {
             new PackageController().read(this);

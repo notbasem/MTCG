@@ -101,7 +101,6 @@ public class CardAccess extends DBAccess{
 
     /**
      * TODO: Funktion nicht einheitlich gelöst, mal wird user.id verwendet, mal user.token
-     * TODO: Funtkion einheiltich machen
      * TODO: Transaktion nur durchführen wenn package wirklich erhalten
      * TODO: UserAccess? oder doch alles in einer Funktion lösen?
      *
