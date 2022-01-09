@@ -75,4 +75,11 @@ public class Card {
                 "\"type\": \"" + type + "\"" +
                 "}";
     }
+
+    public String toShort() {
+        return "{" +
+                "\"name\": \"" + name + "\"(" + damage + ")" +
+                "}";
+    }
+
 }

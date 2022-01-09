@@ -63,7 +63,6 @@ public class Response {
     }
 
     public void sendResponse(ClientHandler client) throws IOException {
-        System.out.println("RESPONSE: " + this.response.length() + ", " + this.response);
         OutputStream clientOutput = client.getClient().getOutputStream();
         clientOutput.write(("HTTP/1.1 " + status + "\r\n").getBytes());
         clientOutput.write(("Content-Length: " + this.response.getBytes().length + "\r\n").getBytes());

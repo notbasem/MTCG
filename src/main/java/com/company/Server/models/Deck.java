@@ -28,7 +28,25 @@ public class Deck {
         return cards;
     }
 
+    public String soutCards() {
+        String erg = "";
+        for (int i=0; i<cards.size()-1; i++) {
+            erg += cards.get(i).getName() + "(" + cards.get(i).getDamage() +") | ";
+        }
+        erg += cards.get(cards.size()-1).getName() + "(" + cards.get(cards.size()-1).getDamage() +"), ";
+
+        return erg;
+    }
+
     public void setCards(List<Card> cards) {
         this.cards = cards;
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "\"id\": \"" + id + "\"," +
+                "\"Cards\": \"" + cards + "\"" +
+                "}";
     }
 }

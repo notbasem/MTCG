@@ -215,7 +215,6 @@ public class DeckAccess extends DBAccess {
             read.setString(1, userId);
             ResultSet rs = read.executeQuery();
             while (rs.next()) {
-                System.out.println(rs.getString(1) + ", " + rs.getString(2) + ", " + rs.getString(3));
                 cards.add(new Card(rs.getString(1), rs.getString(2), rs.getFloat(3)));
             }
             deck.setCards(cards);

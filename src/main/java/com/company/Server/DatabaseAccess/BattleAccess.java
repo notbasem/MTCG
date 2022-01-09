@@ -120,21 +120,25 @@ public class BattleAccess extends DBAccess {
         }
         User player1 = new UserAccess().getUser(battle.getPlayer1());
         User player2 = new UserAccess().getUser(battle.getPlayer2());
-        System.out.println("PLAYER 1: " + player1);
-        System.out.println("PLAYER 2: " + player2);
+        System.out.println("-------------------------------------------");
+        System.out.println("Let's Fight!");
+        System.out.println("-------------------------------------------");
+        System.out.println(player1.getUsername() + " vs. " + player2.getUsername());
 
         Deck deck1 = new DeckAccess().getDeck(battle.getPlayer1());
         Deck deck2 = new DeckAccess().getDeck(battle.getPlayer2());
+        System.out.println(player1.getUsername() + "'s Deck: " + deck1.soutCards());
+        System.out.println(player2.getUsername() + "'s Deck: " + deck2.soutCards());
 
         //Max 100 Runden möglich
         for (int i = 1; i <= 100; i++) {
+            System.out.println("-------------------------------------------");
             System.out.println("Round " + i + ":");
-            System.out.println("Size Deck1:" + deck1.getCards().size());
-            System.out.println("Size Deck2:" + deck2.getCards().size());
 
             if (deck1.getCards().size() == 0) {
                 battle.setWinner(player2.getId());
-                System.out.println("Player2 hat gewonnen");
+                System.out.println("WUHUUUUU, " + player2.getUsername() + " won!!!!!!!");
+                System.out.println("-------------------------------------------");
                 setWinner(battle);
                 updateStats(battle);
                 return new Response(200, "{ \"message\" : \"We've got a winner! :)\"," +
@@ -142,7 +146,8 @@ public class BattleAccess extends DBAccess {
                         "}");
             } else if (deck2.getCards().size() == 0) {
                 battle.setWinner(player1.getId());
-                System.out.println("Player1 hat gewonnen");
+                System.out.println("WUHUUUUU, " + player1.getUsername() + " won!!!!!!!");
+                System.out.println("-------------------------------------------");
                 setWinner(battle);
                 updateStats(battle);
                 return new Response(200, "{ \"message\" : \"We've got a winner! :)\"," +
@@ -155,35 +160,43 @@ public class BattleAccess extends DBAccess {
             int random2 = new Random().nextInt(deck2.getCards().size());
             Card card2 = deck2.getCards().get(random2);
             Card winner=null;
-            System.out.println(card1);
-            System.out.println(card2);
+            System.out.println(player1.getUsername() + " chose " + card1.getName() + "(" + card1.getDamage() + ")");
+            System.out.println(player2.getUsername() + " chose " + card2.getName() + "(" + card2.getDamage() + ")");
 
+
+            double oldDamage1 = card1.getDamage();
+            double oldDamage2 = card2.getDamage();
             //Uniqe Feature: alle 5 Runden kommt ein random multiplier dazu:
             if (i%5 == 0) {
                 double multiplier1 = getMultiplier();
                 double multiplier2 = getMultiplier();
                 card1.setDamage(card1.getDamage() * multiplier1);
                 card2.setDamage(card2.getDamage() * multiplier2);
-                System.out.println("Multiplier1: " + multiplier1);
-                System.out.println("Multiplier2: " + multiplier2);
+                System.out.println("Oh, it's round " + i + ". Time for a multiplier:");
+                System.out.println(player1.getUsername() + "'s multiplier: " + multiplier1);
+                System.out.println(player2.getUsername() + "'s multiplier: " + multiplier2);
             }
 
             if (cardWins(card1, card2) || calcDamage(card1, card2) > calcDamage(card2, card1)) {
                 winner = card1;
                 deck2.getCards().remove(card2);
                 deck1.getCards().add(card2);
-                System.out.println("Winner: " + card1);
+                System.out.println(player1.getUsername() + "'s " + card1.getName() + "(" + (card1.getDamage()) + ") " +
+                        "won against " + player2.getUsername() + "'s " + card2.getName() + "(" + (card2.getDamage()) + ")");
             } else if (cardWins(card2, card1) || calcDamage(card2, card1) > calcDamage(card1, card2)) {
                 winner = card2;
                 deck1.getCards().remove(card1);
                 deck2.getCards().add(card1);
-                System.out.println("Winner: " + card2);
+                System.out.println(player2.getUsername() + "'s " + card2.getName() + "(" + (card2.getDamage()) + ") " +
+                        "won against " + player1.getUsername() + "'s " + card1.getName() + "(" + (card1.getDamage()) + ")");
             }
 
-            if (winner != null) {
-                System.out.println("Winner: " + winner.getName() + "(" + winner.getDamage() + ")");
+            if (winner == null) {
+                System.out.println(player1.getUsername() + "'s " + card1.getName() + "(" + (card1.getDamage()) + ") " +
+                        "drew against " + player2.getUsername() + "'s " + card2.getName() + "(" + (card2.getDamage()) + ")");
             }
-
+            card1.setDamage(oldDamage1);
+            card2.setDamage(oldDamage2);
             newRound(new Round(card1, card2, winner, battle));
         }
 
@@ -216,42 +229,33 @@ public class BattleAccess extends DBAccess {
     private boolean cardWins(Card card1, Card card2) {
         //Monster-Only battles
         if (card1.getType().equals("Monster") && card2.getType().equals("Monster")) {
-            System.out.println("MONSTERFIGHT");
             //Dragon > Goblin
             if (card1.getName().contains("Dragon") && card2.getName().contains("Goblin")) {
-                System.out.println("DRINNE AMK");
                 return true;
             }
             //Wizard > Ork
             if (card1.getName().contains("Wizard") && card2.getName().contains("Ork")) {
-                System.out.println("DRINNE AMK");
                 return true;
             }
 
             //FireElves > Dragon
             if (card1.getName().contains("FireElves") && card2.getName().contains("Dragon")) {
-                System.out.println("DRINNE AMK");
                 return true;
             }
         }
 
         //Monster-Spell battles
         if (card1.getType().equals("Monster") && card2.getType().equals("Spell")) {
-            System.out.println("MONSTER-SPELL-FIGHT");
             //Kraken > all Spell
             if (card1.getName().contains("Kraken")) {
-                System.out.println("DRINNE AMK");
                 return true;
             }
         }
 
         //Spell-Monster battles
         if (card1.getType().equals("Spell") && card2.getType().equals("Monster")) {
-            System.out.println("SPELL-MONSTER-FIGHT");
             //WaterSpell > Knight
             if (card1.getName().contains("Water") && card2.getName().equals("Knight")) {
-                System.out.println("DRINNE AMK");
-                System.out.println("WATERSPELLKNIGHT");
                 return true;
             }
         }
@@ -265,7 +269,6 @@ public class BattleAccess extends DBAccess {
                     card1.getName().contains("Fire") && card2.getName().contains("Normal") ||
                     card1.getName().contains("Normal") && card2.getName().contains("Water")
             ) {
-                System.out.println("DamageNotNormal: " + card1.getDamage()*2);
                 return card1.getDamage()*2;
             }
 
@@ -274,7 +277,6 @@ public class BattleAccess extends DBAccess {
                     card1.getName().contains("Normal") && card2.getName().contains("Fire") ||
                     card1.getName().contains("Water") && card2.getName().contains("Normal")
             ) {
-                System.out.println("DamageNotNormal: " + card1.getDamage()/2);
                 return card1.getDamage()/2;
             }
         }
