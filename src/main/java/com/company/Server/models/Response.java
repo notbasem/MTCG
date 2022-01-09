@@ -47,6 +47,12 @@ public class Response {
         return this;
     }
 
+    public Response setLoginFailed() {
+        this.status = 401;
+        this.response = "{ \"message\": \"Username and password do not match\" }";
+        return this;
+    }
+
     public void sendResponseHeaders(ClientHandler client) throws IOException {
         System.out.println("SEND RESPONSE");
         OutputStream clientOutput = client.getClient().getOutputStream();

@@ -83,7 +83,6 @@ public class ClientHandler implements Runnable {
         }
     }
 
-        // TODO: hasAuthheader & verifyUser() besser einsetzen und dadurch if-abfragen geringer machen
     private void routing() throws IOException, SQLException {
         if (requestEquals("/users", "POST")) {
             new UserController().create(this);

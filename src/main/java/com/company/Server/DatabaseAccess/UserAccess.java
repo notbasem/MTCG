@@ -26,45 +26,42 @@ public class UserAccess extends DBAccess {
             read.setString(1, user.getUsername());
             ResultSet rs = read.executeQuery();
             //Wenn username nicht vorhanden ist, User erstellen
-            if (!rs.next()) {
-                PreparedStatement create = connection.prepareStatement(
-                        "INSERT INTO mtcg.public.user (id, username, password, token, coins) " +
-                                "VALUES (?,?,?,?,?);"
-                );
-
-                //Password hash erstellen mit: https://github.com/patrickfav/bcrypt
-                user.setPassword(BCrypt.withDefaults().hashToString(12, user.getPassword().toCharArray()));
-
-                create.setString(1, user.getId());
-                create.setString(2, user.getUsername());
-                create.setString(3, user.getPassword());
-                create.setString(4, user.getToken());
-                create.setInt(5, user.getCoins());
-                create.executeUpdate();
-
-                //Deck für User erstellen
-                new DeckAccess().create(user);
-
-                //Stat für User erstellen
-                new StatAccess().create(new Stat(user.getId()));
-
-                System.out.println("Registered successfully:");
-                System.out.println("Username: " + user.getUsername() + " | Password: " + user.getPassword() + " | Token: " + user.getToken());
-                return new Response(200, "{ \"message\": \"User registered successfully\" }");
-            } else {
-                System.out.println("Registration failed.");
+            if (rs.next()) {
+                return new Response(409, "{ \"message\": \"Username already in use\" }");
             }
+            PreparedStatement create = connection.prepareStatement(
+                    "INSERT INTO mtcg.public.user (id, username, password, token, coins) " +
+                            "VALUES (?,?,?,?,?);"
+            );
+
+            //Password hash erstellen mit: https://github.com/patrickfav/bcrypt
+            user.setPassword(BCrypt.withDefaults().hashToString(12, user.getPassword().toCharArray()));
+
+            create.setString(1, user.getId());
+            create.setString(2, user.getUsername());
+            create.setString(3, user.getPassword());
+            create.setString(4, user.getToken());
+            create.setInt(5, user.getCoins());
+            create.executeUpdate();
+
+            //Deck für User erstellen
+            new DeckAccess().create(user);
+
+            //Stat für User erstellen
+            new StatAccess().create(new Stat(user.getId()));
+
+            System.out.println("Registered successfully:");
+            System.out.println("Username: " + user.getUsername() + " | Password: " + user.getPassword() + " | Token: " + user.getToken());
+            return new Response(200, "{ \"message\": \"User registered successfully\" }");
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             connection.close();
         }
-        return new Response(409, "{ \"message\": \"Username already in use\" }");
+        return new Response(200, "{ \"message\": \"User registered successfully\" }");
     }
 
-    public Response loginUser(User user) throws JsonProcessingException, SQLException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+    public Response loginUser(User user) throws SQLException {
         //Überprüfen, ob der username bereits vorhanden ist
         try {
             PreparedStatement read = connection.prepareStatement(
@@ -81,30 +78,26 @@ public class UserAccess extends DBAccess {
             read.close();
 
             if (hash == null) {
-                return new Response(401, "{ \"message\": \"Username and password do not match\" }" );
+                return new Response().setLoginFailed();
             }
 
             //Passwörter miteinander vergleichen
             BCrypt.Result result = BCrypt.verifyer().verify(user.getPassword().toCharArray(), hash);
             if (result.verified) {
-                String userJson = objectMapper.writeValueAsString(user);
                 System.out.println("Logged in successfully");
-                return new Response(200,"{ \"message\": \"Logged in successfully\", \"user\": " + userJson + " }" );
+                return new Response(200,"{ \"message\": \"Logged in successfully\", \"user\": " + user + " }" );
             } else {
-                return new Response(401, "{ \"message\": \"Username and password do not match\" }" );
+                return new Response().setLoginFailed();
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return new Response(401, "{ \"message\": \"Username and password do not match\" }" );
+            return new Response().setLoginFailed();
         } finally {
             connection.close();
         }
     }
 
     public Response read(String token) throws SQLException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
-        String userJson = "";
         try {
             PreparedStatement getUser = connection.prepareStatement(
                     "SELECT * FROM mtcg.public.user WHERE token = ?"
@@ -117,11 +110,10 @@ public class UserAccess extends DBAccess {
                         rs.getString(4), rs.getInt(5), rs.getString(6),
                         rs.getString(7), rs.getString(8)
                 );
-                userJson = objectMapper.writeValueAsString(user);
-                return new Response(200, "{ \"message\": \"User could be read successfully\"," +
-                        "\"user\":" + userJson + "}" );
+                return new Response(200, "{ \"message\": \"User read successfully\"," +
+                        "\"user\":" + user + "}" );
             }
-        } catch (SQLException | JsonProcessingException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             return new Response(400, "{ \"message\": \"User could not be read\" }");
         } finally {
@@ -244,24 +236,5 @@ public class UserAccess extends DBAccess {
             connection.close();
         }
         return user;
-    }
-
-    public String getUserByCard(String cardId) throws SQLException {
-        try {
-            PreparedStatement read = connection.prepareStatement(
-                    "SELECT * FROM \"user\" " +
-                            "INNER JOIN package p on \"user\".id = p.fk_user " +
-                            "INNER JOIN card c on p.id = c.card_package_id_fk " +
-                            "WHERE c.id = ?"
-            );
-            read.setString(1, cardId);
-            ResultSet rs = read.executeQuery();
-            if (rs.next()) {
-                return rs.getString(1);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 }
