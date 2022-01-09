@@ -188,6 +188,7 @@ public class BattleAccess extends DBAccess {
         }
 
         //Gewinner eintragen und stats anpassen
+        /*
         if (deck1.getCards().size() > deck2.getCards().size()) {
             battle.setWinner(player1.getId());
             System.out.println("Player1 hat gewonnen");
@@ -205,8 +206,10 @@ public class BattleAccess extends DBAccess {
                     "\"Winner\": " + player2 +
                     "}");
         }
+        */
 
-        //Wenn der Spieler noch kein offenes Spiel hat, dann tritt er einem Spiel bei
+        //Draw in stats updaten
+        new StatAccess().updateDraw(battle.getPlayer1(), battle.getPlayer2());
         return new Response(200, "{ \"message\" : \"It's a draw :|\"}");
     }
 
@@ -312,29 +315,18 @@ public class BattleAccess extends DBAccess {
         }
     }
 
-    private void updateStats(Battle battle) {
-        try {
-            PreparedStatement updateWinner = connection.prepareStatement(
-                    "UPDATE stat SET elo = elo + 3 WHERE fk_user = ?"
-            );
-            updateWinner.setString(1, battle.getWinner());
-            updateWinner.executeUpdate();
-            String loserId;
-            if (battle.getPlayer1().equals(battle.getWinner())){
-                loserId = battle.getPlayer2();
-            } else {
-                loserId = battle.getPlayer1();
-            }
-
-            PreparedStatement updateLoser = connection.prepareStatement(
-                    "UPDATE stat SET elo = elo -5 WHERE fk_user = ?"
-            );
-            updateLoser.setString(1, loserId);
-            updateLoser.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+    private void updateStats(Battle battle) throws SQLException {
+        //Verlierer ermitteln
+        String loser;
+        if (battle.getPlayer1().equals(battle.getWinner())){
+            loser = battle.getPlayer2();
+        } else {
+            loser = battle.getPlayer1();
         }
+
+        //Gewinner & Verlierer in stats updaten
+        new StatAccess().updateWinner(battle.getWinner());
+        new StatAccess().updateLoser(loser);
     }
 
     private Double getMultiplier() {
