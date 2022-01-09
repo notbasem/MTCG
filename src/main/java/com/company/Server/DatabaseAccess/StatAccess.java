@@ -48,15 +48,15 @@ public class StatAccess extends DBAccess{
             }
 
             if (stat.getUserId() == null) {
-                return new Response(400, "{ \"message\": \"Stats konnten nicht ausgelesen werden\" }");
+                return new Response(400, "{ \"message\": \"Stats could not be read\" }");
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return new Response(400, "{ \"message\": \"Stats konnten nicht ausgelesen werden\" }");
+            return new Response(400, "{ \"message\": \"Stats could not be read\" }");
         } finally {
             connection.close();
         }
-        return new Response(200, "{ \"message\": \"Stats konnten erfolgreich ausgelesen werden\", " +
+        return new Response(200, "{ \"message\": \"Stats read successfully\", " +
                 "\"stats\": " + stat +" }");
     }
 
@@ -90,15 +90,15 @@ public class StatAccess extends DBAccess{
             }
 
             if (scoreboard.isEmpty()) {
-                return new Response(400, "{ \"message\": \"Scoreboard konnten nicht ausgelesen werden\" }");
+                return new Response(400, "{ \"message\": \"Scoreboard could not be read\" }");
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return new Response(400, "{ \"message\": \"Scoreboard konnten nicht ausgelesen werden\" }");
+            return new Response(400, "{ \"message\": \"Scoreboard could not be read\" }");
         } finally {
             connection.close();
         }
-        return new Response(200, "{ \"message\": \"Scoreboard konnten erfolgreich ausgelesen werden\", " +
+        return new Response(200, "{ \"message\": \"Scoreboard read successfully\", " +
                 "\"stats\": " + scoreboard +" }");
     }
 }

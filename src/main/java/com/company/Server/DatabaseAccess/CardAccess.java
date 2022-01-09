@@ -64,13 +64,13 @@ public class CardAccess extends DBAccess{
             } catch (SQLException e) {
                 e.printStackTrace();
                 deletePackage(pack);
-                return new Response(400, "{ \"message\" : \"Cards konnten nicht erstellt werden\" }");
+                return new Response(400, "{ \"message\" : \"Cards could not be created\" }");
             }
         }
         pack.setCards(cards);
         System.out.println(pack.getCards());
         connection.close();
-        return new Response(200, "{ \"message\" : \"Cards erfolgreich erstellt\" }");
+        return new Response(200, "{ \"message\" : \"Cards created successfully\" }");
     }
 
     public Response readCards(String token) throws SQLException {
@@ -89,13 +89,13 @@ public class CardAccess extends DBAccess{
             System.out.println(cards);
         } catch (SQLException e) {
             e.printStackTrace();
-            return new Response(400, "{ \"message\" : \"Cards konnten nicht gelesen werden\" }");
+            return new Response(400, "{ \"message\" : \"Cards could not be read\" }");
         } finally {
             connection.close();
         }
 
 
-        return new Response(200, "{ \"message\" : \"Cards erfolgreich ausgelesen\", " +
+        return new Response(200, "{ \"message\" : \"Cards read successfully\", " +
                 "\"cards\":" + cards +" }");
     }
 
@@ -146,7 +146,7 @@ public class CardAccess extends DBAccess{
             }
             System.out.println("Coins danach: " +coins);
             connection.close();
-            return new Response(200, "{ \"message\" : \"Package could be acquired\" }");
+            return new Response(200, "{ \"message\" : \"Package acquired successfully\" }");
         }
         connection.close();
         return new Response(400, "{ \"message\" : \"Package could not be acquired. To few coins.\" }");

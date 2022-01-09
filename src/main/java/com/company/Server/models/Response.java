@@ -41,6 +41,12 @@ public class Response {
         sendResponse(client);
     }
 
+    public Response setNotAuthorized() {
+        this.status = 401;
+        this.response = "{ \"message\": \"Not Authorized\" }";
+        return this;
+    }
+
     public void sendResponseHeaders(ClientHandler client) throws IOException {
         System.out.println("SEND RESPONSE");
         OutputStream clientOutput = client.getClient().getOutputStream();

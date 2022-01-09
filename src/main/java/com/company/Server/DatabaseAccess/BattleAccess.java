@@ -15,7 +15,7 @@ public class BattleAccess extends DBAccess {
     public BattleAccess() throws SQLException {
     }
 
-    public Battle createOrJoin(String token) throws SQLException {
+    public Battle createOrJoin(String token) {
         Battle battle = null;
         try {
             PreparedStatement createOrJoin = connection.prepareStatement(
@@ -31,7 +31,7 @@ public class BattleAccess extends DBAccess {
 
             battle = addPlayer(battle, token);
             if (battle == null) {
-                System.out.println("Bereits ein offenes Battle vorhanden");
+                System.out.println("Already got an open battle");
                 return null;
             }
 
@@ -79,7 +79,7 @@ public class BattleAccess extends DBAccess {
                 );
                 battle.setPlayer2(userId);
             } else {
-                System.out.println("Bereits ein offenes Battle vorhanden");
+                System.out.println("Already got an open battle");
                 return null;
             }
             create.setString(1, userId);
@@ -114,9 +114,9 @@ public class BattleAccess extends DBAccess {
 
     public Response battle(Battle battle) throws SQLException {
         if (battle == null) {
-            return new Response(400, "{ \"message\" : \"Bereits ein offenes Battle vorhanden\"}");
+            return new Response(400, "{ \"message\" : \"Already got an open battle\"}");
         } else if (battle.getPlayer1() == null || battle.getPlayer2() == null) {
-            return new Response(200, "{ \"message\" : \"Warten auf Spieler...\"}");
+            return new Response(200, "{ \"message\" : \"Waiting for an opponent...\"}");
         }
         User player1 = new UserAccess().getUser(battle.getPlayer1());
         User player2 = new UserAccess().getUser(battle.getPlayer2());
@@ -137,7 +137,7 @@ public class BattleAccess extends DBAccess {
                 System.out.println("Player2 hat gewonnen");
                 setWinner(battle);
                 updateStats(battle);
-                return new Response(200, "{ \"message\" : \"Battle abgeschlossen\"," +
+                return new Response(200, "{ \"message\" : \"We've got a winner! :)\"," +
                         "\"Winner\": " + player1 +
                         "}");
             } else if (deck2.getCards().size() == 0) {
@@ -145,7 +145,7 @@ public class BattleAccess extends DBAccess {
                 System.out.println("Player1 hat gewonnen");
                 setWinner(battle);
                 updateStats(battle);
-                return new Response(200, "{ \"message\" : \"Battle abgeschlossen\"," +
+                return new Response(200, "{ \"message\" : \"We've got a winner! :)\"," +
                         "\"Winner\": " + player2 +
                         "}");
             }
@@ -193,7 +193,7 @@ public class BattleAccess extends DBAccess {
             System.out.println("Player1 hat gewonnen");
             setWinner(battle);
             updateStats(battle);
-            return new Response(200, "{ \"message\" : \"Battle abgeschlossen\"," +
+            return new Response(200, "{ \"message\" : \"We've got a winner! :)\"," +
                     "\"Winner\": " + player1 +
                     "}");
         } else if (deck2.getCards().size() > deck1.getCards().size()) {
@@ -201,13 +201,13 @@ public class BattleAccess extends DBAccess {
             System.out.println("Player2 hat gewonnen");
             setWinner(battle);
             updateStats(battle);
-            return new Response(200, "{ \"message\" : \"Battle abgeschlossen\"," +
+            return new Response(200, "{ \"message\" : \"We've got a winner! :)\"," +
                     "\"Winner\": " + player2 +
                     "}");
         }
 
         //Wenn der Spieler noch kein offenes Spiel hat, dann tritt er einem Spiel bei
-        return new Response(200, "{ \"message\" : \"Spiel ist unentschieden ausgegangen\"}");
+        return new Response(200, "{ \"message\" : \"It's a draw :|\"}");
     }
 
     private boolean cardWins(Card card1, Card card2) {
@@ -279,7 +279,7 @@ public class BattleAccess extends DBAccess {
         return card1.getDamage();
     }
 
-    private void newRound(Round round) throws SQLException {
+    private void newRound(Round round) {
         try {
             PreparedStatement create = connection.prepareStatement(
                     "INSERT INTO round (id, fk_card1, fk_card2, fk_winner_card, fk_battle) VALUES (?,?,?,?,?)"
@@ -299,7 +299,7 @@ public class BattleAccess extends DBAccess {
         }
     }
 
-    private void setWinner(Battle battle) throws SQLException {
+    private void setWinner(Battle battle) {
         try {
             PreparedStatement setWinner = connection.prepareStatement(
                     "UPDATE battle SET fk_winner = ? WHERE id = ?"
@@ -312,7 +312,7 @@ public class BattleAccess extends DBAccess {
         }
     }
 
-    private void updateStats(Battle battle) throws SQLException {
+    private void updateStats(Battle battle) {
         try {
             PreparedStatement updateWinner = connection.prepareStatement(
                     "UPDATE stat SET elo = elo + 3 WHERE fk_user = ?"
