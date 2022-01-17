@@ -24,7 +24,7 @@ public class StatController {
         Response response = null;
         try {
             StatAccess statAccess = new StatAccess();
-            response = statAccess.scoreboard(client.getToken().replaceAll("Basic ", ""));
+            response = statAccess.scoreboard();
         } catch (SQLException e) {
             e.printStackTrace();
         }

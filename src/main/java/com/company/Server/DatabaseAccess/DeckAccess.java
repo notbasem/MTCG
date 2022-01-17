@@ -38,7 +38,7 @@ public class DeckAccess extends DBAccess {
                 deck = new CardAccess().get4Cards(token);
                 //Wenn der User keine Karten hat Fehlermeldung zurückgeben
                 if (deck.isEmpty()) {
-                    return new Response(400, "{ \"message\" : \"Deck konnte nicht ausgelesen werden\" }");
+                    return new Response(400, "{ \"message\" : \"Deck could not be read\" }");
                 }
                 PreparedStatement read = connection.prepareStatement(
                         "UPDATE deck SET fk_card1 = ?, fk_card2 = ?, fk_card3 = ?, fk_card4 = ? " +
@@ -52,7 +52,7 @@ public class DeckAccess extends DBAccess {
                 read.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
-                return new Response(400, "{ \"message\" : \"Deck konnte nicht ausgelesen werden\" }");
+                return new Response(400, "{ \"message\" : \"Deck could not be read\" }");
             }
         } else { //Wenn das Deck bereits gesetzt wurde
             try {
@@ -75,11 +75,11 @@ public class DeckAccess extends DBAccess {
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
-                return new Response(400, "{ \"message\" : \"Deck konnte nicht ausgelesen werden\" }");
+                return new Response(400, "{ \"message\" : \"Deck could not be read\" }");
             }
         }
         connection.close();
-        return new Response(200, "{ \"message\" : \"Deck erfolgreich ausgelesen\", " +
+        return new Response(200, "{ \"message\" : \"Deck read successfully\", " +
                 "\"deck\":" + deck +" }");
     }
 
@@ -88,7 +88,7 @@ public class DeckAccess extends DBAccess {
         //Mit Regex alles außer ID's und Beistriche entfernen
         String[] cards = body.replaceAll("[^a-zA-Z0-9-,]", "").split(",");
         if (cards.length < 4) {
-            return new Response(400, "{ \"message\" : \"Deck konnte nicht überschrieben werden\" }");
+            return new Response(400, "{ \"message\" : \"Deck could not be configured\" }");
         }
         try {
             PreparedStatement update = connection.prepareStatement(
@@ -104,14 +104,14 @@ public class DeckAccess extends DBAccess {
             update.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
-            return new Response(400, "{ \"message\" : \"Deck konnte nicht überschrieben werden\" }");
+            return new Response(400, "{ \"message\" : \"Deck could not be configured\" }");
         } finally {
             connection.close();
         }
-        return new Response(200, "{ \"message\" : \"Deck erfolgreich überschrieben\"}");
+        return new Response(200, "{ \"message\" : \"Deck configured successfully\"}");
     }
 
-    private boolean isDeckSet(String token) throws SQLException {
+    private boolean isDeckSet(String token) {
         try {
             PreparedStatement readDeck = connection.prepareStatement(
                     "SELECT * FROM mtcg.public.deck INNER JOIN mtcg.public.user u on deck.fk_user = u.id " +
@@ -141,7 +141,7 @@ public class DeckAccess extends DBAccess {
                 deck = new CardAccess().get4Cards(token);
                 //Wenn der User keine Karten hat Fehlermeldung zurückgeben
                 if (deck.isEmpty()) {
-                    return new Response(400, "{ \"message\" : \"Deck konnte nicht ausgelesen werden\" }");
+                    return new Response(400, "{ \"message\" : \"Deck could not be read\" }");
                 }
                 PreparedStatement read = connection.prepareStatement(
                         "UPDATE deck SET fk_card1 = ?, fk_card2 = ?, fk_card3 = ?, fk_card4 = ? " +
@@ -155,7 +155,7 @@ public class DeckAccess extends DBAccess {
                 read.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
-                return new Response(400, "{ \"message\" : \"Deck konnte nicht ausgelesen werden\" }");
+                return new Response(400, "{ \"message\" : \"Deck could not be read\" }");
             } finally {
                 connection.close();
             }
@@ -180,7 +180,7 @@ public class DeckAccess extends DBAccess {
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
-                return new Response(400, "{ \"message\" : \"Deck konnte nicht ausgelesen werden\" }");
+                return new Response(400, "{ \"message\" : \"Deck could not be read\" }");
             }  finally {
                 connection.close();
             }
@@ -215,7 +215,6 @@ public class DeckAccess extends DBAccess {
             read.setString(1, userId);
             ResultSet rs = read.executeQuery();
             while (rs.next()) {
-                System.out.println(rs.getString(1) + ", " + rs.getString(2) + ", " + rs.getString(3));
                 cards.add(new Card(rs.getString(1), rs.getString(2), rs.getFloat(3)));
             }
             deck.setCards(cards);

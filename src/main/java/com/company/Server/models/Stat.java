@@ -6,23 +6,29 @@ import java.util.UUID;
 public class Stat {
     private String id;
     private int elo;
+    private int total;
     private int wins;
     private int defeats;
+    private int draws;
     String userId;
 
     public Stat(String userId) {
         this.id = UUID.randomUUID().toString();
         this.elo = 100;
+        this.total = 0;
         this.wins = 0;
         this.defeats = 0;
+        this.draws = 0;
         this.userId = userId;
     }
 
-    public Stat(String id, int elo, int wins, int defeats, String userId) {
+    public Stat(String id, int elo, int total, int wins, int defeats, int draws,  String userId) {
         this.id = id;
         this.elo = elo;
+        this.total = total;
         this.wins = wins;
         this.defeats = defeats;
+        this.draws = draws;
         this.userId = userId;
     }
 
@@ -31,8 +37,10 @@ public class Stat {
         return "{" +
                 "\"id\": \"" + id + "\", " +
                 "\"elo\": \"" + elo + "\"," +
+                "\"total\": \"" + total + "\"," +
                 "\"wins\": \"" + wins + "\"," +
                 "\"defeats\": \"" + defeats + "\"," +
+                "\"draws\": \"" + draws + "\"," +
                 "\"userId\": \"" + userId + "\" " +
                 "}";
     }
@@ -75,5 +83,21 @@ public class Stat {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public int getTotal() {
+        return total;
+    }
+
+    public void setTotal(int total) {
+        this.total = total;
+    }
+
+    public int getDraws() {
+        return draws;
+    }
+
+    public void setDraws(int draws) {
+        this.draws = draws;
     }
 }

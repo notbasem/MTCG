@@ -1,10 +1,9 @@
 package com.company.Server.DatabaseAccess;
 
+import com.company.Server.models.Response;
 import com.company.Server.models.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.*;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.sql.SQLException;
 
@@ -23,7 +22,9 @@ class UserAccessTest {
     @Test
     @Order(1)
     void testCreateUserTrue() throws SQLException {
-        assertEquals(200, new UserAccess().createUser(user1).getStatus());
+        Response response = new UserAccess().createUser(user1);
+        assertEquals(200, response.getStatus());
+        assertEquals("{ \"message\": \"User registered successfully\" }", response.getResponse());
     }
 
     @Test
@@ -34,13 +35,13 @@ class UserAccessTest {
 
     @Test
     @Order(3)
-    void loginUserTrue() throws SQLException, JsonProcessingException {
+    void loginUserTrue() throws SQLException {
         assertEquals(200, new UserAccess().loginUser(user1).getStatus());
     }
 
     @Test
     @Order(4)
-    void loginUserFalse() throws SQLException, JsonProcessingException {
+    void loginUserFalse() throws SQLException {
         assertEquals(401, new UserAccess().loginUser(user2).getStatus());
     }
 
@@ -75,7 +76,7 @@ class UserAccessTest {
                 "  \"Bio\": \"false...\",\n" +
                 "  \"Image\": \":'-(\"\n" +
                 "}";
-        assertEquals(400, new UserAccess().update(body, user2.getToken()).getStatus());
+        assertEquals(401, new UserAccess().update(body, user2.getToken()).getStatus());
     }
 
     @Test

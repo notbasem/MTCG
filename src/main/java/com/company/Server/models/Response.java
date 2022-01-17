@@ -41,6 +41,18 @@ public class Response {
         sendResponse(client);
     }
 
+    public Response setNotAuthorized() {
+        this.status = 401;
+        this.response = "{ \"message\": \"Not Authorized\" }";
+        return this;
+    }
+
+    public Response setLoginFailed() {
+        this.status = 401;
+        this.response = "{ \"message\": \"Username and password do not match\" }";
+        return this;
+    }
+
     public void sendResponseHeaders(ClientHandler client) throws IOException {
         System.out.println("SEND RESPONSE");
         OutputStream clientOutput = client.getClient().getOutputStream();
@@ -51,7 +63,6 @@ public class Response {
     }
 
     public void sendResponse(ClientHandler client) throws IOException {
-        System.out.println("RESPONSE: " + this.response.length() + ", " + this.response);
         OutputStream clientOutput = client.getClient().getOutputStream();
         clientOutput.write(("HTTP/1.1 " + status + "\r\n").getBytes());
         clientOutput.write(("Content-Length: " + this.response.getBytes().length + "\r\n").getBytes());

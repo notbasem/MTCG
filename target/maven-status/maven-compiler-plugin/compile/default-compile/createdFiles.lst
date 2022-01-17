@@ -1,5 +1,4 @@
 com/company/Server/ClientHandler.class
 com/company/Server/models/User.class
-com/company/Main.class
-com/company/Server/Server.class
 com/company/Server/controller/UserController.class
+com/company/Server/Server.class

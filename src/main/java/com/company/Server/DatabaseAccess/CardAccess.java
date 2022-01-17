@@ -27,8 +27,8 @@ public class CardAccess extends DBAccess{
 
         /**
          * Packages werden auch erstellt, wenn Cards nicht erstellt werden können
-         * Dadurch gibt es auch Packages, die keine Karten beinhalten.
-         * TODO: Nur Package erstellen, wenn auch Cards erstellt werden.
+         * Dadurch gibt es auch Packages, die keine Karten beinhalten. => werden bei Fehler
+         * wieder gelöscht am Ende
          */
         Package pack = new Package(cards);
         try {
@@ -64,13 +64,13 @@ public class CardAccess extends DBAccess{
             } catch (SQLException e) {
                 e.printStackTrace();
                 deletePackage(pack);
-                return new Response(400, "{ \"message\" : \"Cards konnten nicht erstellt werden\" }");
+                return new Response(400, "{ \"message\" : \"Cards could not be created\" }");
             }
         }
         pack.setCards(cards);
         System.out.println(pack.getCards());
         connection.close();
-        return new Response(200, "{ \"message\" : \"Cards erfolgreich erstellt\" }");
+        return new Response(200, "{ \"message\" : \"Cards created successfully\" }");
     }
 
     public Response readCards(String token) throws SQLException {
@@ -89,22 +89,17 @@ public class CardAccess extends DBAccess{
             System.out.println(cards);
         } catch (SQLException e) {
             e.printStackTrace();
-            return new Response(400, "{ \"message\" : \"Cards konnten nicht gelesen werden\" }");
+            return new Response(400, "{ \"message\" : \"Cards could not be read\" }");
         } finally {
             connection.close();
         }
 
 
-        return new Response(200, "{ \"message\" : \"Cards erfolgreich ausgelesen\", " +
+        return new Response(200, "{ \"message\" : \"Cards read successfully\", " +
                 "\"cards\":" + cards +" }");
     }
 
     /**
-     * TODO: Funktion nicht einheitlich gelöst, mal wird user.id verwendet, mal user.token
-     * TODO: Funtkion einheiltich machen
-     * TODO: Transaktion nur durchführen wenn package wirklich erhalten
-     * TODO: UserAccess? oder doch alles in einer Funktion lösen?
-     *
      * @param token
      * @return
      * @throws SQLException
@@ -116,7 +111,7 @@ public class CardAccess extends DBAccess{
         System.out.println("Coins davor: " + coins);
 
         //Wenn genügend coins vorhanden sind Package kaufen
-        if (coins>0) {
+        if (coins>=5) {
             PreparedStatement choosePackage = connection.prepareStatement(
                     "SELECT * FROM mtcg.public.package WHERE fk_user IS NULL"
             );
@@ -146,7 +141,7 @@ public class CardAccess extends DBAccess{
             }
             System.out.println("Coins danach: " +coins);
             connection.close();
-            return new Response(200, "{ \"message\" : \"Package could be acquired\" }");
+            return new Response(200, "{ \"message\" : \"Package acquired successfully\" }");
         }
         connection.close();
         return new Response(400, "{ \"message\" : \"Package could not be acquired. To few coins.\" }");

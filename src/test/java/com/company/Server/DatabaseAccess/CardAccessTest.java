@@ -1,13 +1,16 @@
 package com.company.Server.DatabaseAccess;
 
 import com.company.Server.models.User;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CardAccessTest {
     User user1 = new User("9788b3de-e2b7-48fc-a573-592318d11881", "testuser", "testuser-mtcgToken", 20,  "false", "false...", "");
     User user2 = new User("falseuser", "falseuser");

@@ -3,7 +3,6 @@ package com.company.Server.DatabaseAccess;
 import com.company.Server.models.Card;
 import com.company.Server.models.Response;
 import com.company.Server.models.Trade;
-import com.company.Server.models.User;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,7 +20,7 @@ public class TradeAccess extends DBAccess{
         try {
             String userId = new UserAccess().getId(token);
             if (userId == null) {
-                return new Response(401, "{ \"message\": \"Not Authorized\" }");
+                return new Response().setNotAuthorized();
             }
             //TODO: Nicht eigene Trades anzeigen
             PreparedStatement read = connection.prepareStatement(
@@ -40,7 +39,7 @@ public class TradeAccess extends DBAccess{
         } finally {
             connection.close();
         }
-        return new Response(200, "{ \"message\" : \"Trades could be read successfully\"," +
+        return new Response(200, "{ \"message\" : \"Trades read successfully\"," +
                 "\"Trades\": " + trades + "}");
     }
 
@@ -49,11 +48,11 @@ public class TradeAccess extends DBAccess{
         try {
             String userId = new UserAccess().getId(token);
             if (userId == null) {
-                return new Response(401, "{ \"message\": \"Not Authorized\" }");
+                return new Response().setNotAuthorized();
             }
 
             if (!new CardAccess().userHasCard(userId, trade.getCardToTrade())) {
-                return new Response(400, "{ \"message\": \"User besitzt die Karte nicht\" }");
+                return new Response(400, "{ \"message\": \"User does not possess this card\" }");
             }
 
             trade.setUserId(userId);
@@ -74,18 +73,18 @@ public class TradeAccess extends DBAccess{
         } finally {
             connection.close();
         }
-        return new Response(200, "{ \"message\" : \"Trade could be created successfully\" }");
+        return new Response(200, "{ \"message\" : \"Trade created successfully\" }");
     }
 
     public Response delete(String tradeId, String token) throws SQLException {
         try {
             String userId = new UserAccess().getId(token);
             if (userId == null) {
-                return new Response(401, "{ \"message\": \"Not Authorized\" }");
+                return new Response().setNotAuthorized();
             }
 
             if (!userId.equals(getUserId(tradeId))) {
-                return new Response(400, "{ \"message\": \"Trade could not be found\" }");
+                return new Response(400, "{ \"message\": \"No such trade\" }");
             }
 
             PreparedStatement create = connection.prepareStatement(
@@ -99,7 +98,7 @@ public class TradeAccess extends DBAccess{
         } finally {
             connection.close();
         }
-        return new Response(200, "{ \"message\" : \"Trade successfully deleted\" }");
+        return new Response(200, "{ \"message\" : \"Trade deleted successfully\" }");
     }
 
     public Response trade(String tradeId, String cardId, String token) throws SQLException {
@@ -108,19 +107,19 @@ public class TradeAccess extends DBAccess{
             //User1 ist der, der die Anfrage schickt
             String user1Id = new UserAccess().getId(token);
             if (user1Id == null) {
-                return new Response(401, "{ \"message\": \"Not Authorized\" }");
+                return new Response().setNotAuthorized();
             }
 
             //Checken ob User die Karte besitzt, die er traden will
             if (!(new CardAccess().userHasCard(user1Id, cardId))) {
-                return new Response(400, "{ \"message\": \"User besitzt die Karte nicht\" }");
+                return new Response(400, "{ \"message\": \"User does not possess this card\" }");
             }
 
             //Checken ob Trade existiert
             //User2 ist der, der den Trade erstellt hat
             String user2Id = getUserId(tradeId);
             if (user2Id == null) {
-                return new Response(401, "{ \"message\": \"Trade does not exist\" }");
+                return new Response(401, "{ \"message\": \"No such trade\" }");
             }
 
             //Trade mit sich selbst verhindern

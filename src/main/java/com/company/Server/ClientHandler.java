@@ -12,8 +12,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ClientHandler implements Runnable {
-    private Socket client;
-    private BufferedReader br;
+    private final Socket client;
+    private final BufferedReader br;
     private String method;
     private String uri;
     private String version;
@@ -35,12 +35,12 @@ public class ClientHandler implements Runnable {
             String line = this.br.readLine();
             if (line != null) {
                 System.out.println(line);
-                requestBuilder.append(line + "\r\n");
+                requestBuilder.append(line).append("\r\n");
 
                 while (!line.isEmpty()) {
                     line = this.br.readLine();
                     System.out.println(line);
-                    requestBuilder.append(line + "\r\n");
+                    requestBuilder.append(line).append("\r\n");
                 }
 
                 String request = requestBuilder.toString();
@@ -83,7 +83,6 @@ public class ClientHandler implements Runnable {
         }
     }
 
-        // TODO: hasAuthheader & verifyUser() besser einsetzen und dadurch if-abfragen geringer machen
     private void routing() throws IOException, SQLException {
         if (requestEquals("/users", "POST")) {
             new UserController().create(this);
@@ -101,7 +100,7 @@ public class ClientHandler implements Runnable {
             if (this.verifyUser("Basic admin-mtcgToken")) {
                 new PackageController().create(this);
             } else {
-                new Response(401, "{ \"message\": \"Not Authorized\" }").sendResponse(this);
+                new Response().sendNotAuthorized(this);
             }
         } else if (requestEquals("/packages", "GET")) {
             new PackageController().read(this);
