@@ -27,8 +27,8 @@ public class CardAccess extends DBAccess{
 
         /**
          * Packages werden auch erstellt, wenn Cards nicht erstellt werden können
-         * Dadurch gibt es auch Packages, die keine Karten beinhalten.
-         * TODO: Nur Package erstellen, wenn auch Cards erstellt werden.
+         * Dadurch gibt es auch Packages, die keine Karten beinhalten. => werden bei Fehler
+         * wieder gelöscht am Ende
          */
         Package pack = new Package(cards);
         try {
@@ -100,10 +100,6 @@ public class CardAccess extends DBAccess{
     }
 
     /**
-     * TODO: Funktion nicht einheitlich gelöst, mal wird user.id verwendet, mal user.token
-     * TODO: Transaktion nur durchführen wenn package wirklich erhalten
-     * TODO: UserAccess? oder doch alles in einer Funktion lösen?
-     *
      * @param token
      * @return
      * @throws SQLException
@@ -115,7 +111,7 @@ public class CardAccess extends DBAccess{
         System.out.println("Coins davor: " + coins);
 
         //Wenn genügend coins vorhanden sind Package kaufen
-        if (coins>0) {
+        if (coins>=5) {
             PreparedStatement choosePackage = connection.prepareStatement(
                     "SELECT * FROM mtcg.public.package WHERE fk_user IS NULL"
             );

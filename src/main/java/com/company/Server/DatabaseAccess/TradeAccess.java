@@ -3,7 +3,6 @@ package com.company.Server.DatabaseAccess;
 import com.company.Server.models.Card;
 import com.company.Server.models.Response;
 import com.company.Server.models.Trade;
-import com.company.Server.models.User;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
