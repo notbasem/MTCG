@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>DATABASE</ID>
+  <OriginalElement>1a280f01-c1ae-42b0-9bb0-61627c579b8a.SCHEMA:mtcg.public</OriginalElement>
+  <nodes>
+    <node x="308.9801282051281" y="708.0">1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.deck</node>
+    <node x="95.48685897435888" y="0.0">1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.user</node>
+    <node x="54.16666666666663" y="295.0">1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.battle</node>
+    <node x="452.01874999999995" y="262.0">1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.stat</node>
+    <node x="471.9801282051281" y="719.0">1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.trade</node>
+    <node x="241.29166666666663" y="317.0">1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.package</node>
+    <node x="100.9801282051281" y="719.0">1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.round</node>
+    <node x="199.29166666666663" y="504.0">1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.card</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.deck" target="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.user" relationship="REFERENCES">
+      <point x="57.19999999999999" y="-83.0" />
+      <point x="436.8432692307692" y="241.0" />
+      <point x="497.3551282051281" y="241.0" />
+      <point x="497.3551282051281" y="231.0" />
+      <point x="225.86185897435888" y="231.0" />
+      <point x="55.875" y="105.0" />
+    </edge>
+    <edge source="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.package" target="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.user" relationship="REFERENCES">
+      <point x="0.0" y="-39.0" />
+      <point x="308.79166666666663" y="241.0" />
+      <point x="497.3551282051281" y="241.0" />
+      <point x="497.3551282051281" y="231.0" />
+      <point x="225.86185897435888" y="231.0" />
+      <point x="55.875" y="105.0" />
+    </edge>
+    <edge source="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.deck" target="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.card" relationship="REFERENCES">
+      <point x="0.0" y="-83.0" />
+      <point x="380.4801282051281" y="667.0" />
+      <point x="327.04166666666663" y="667.0" />
+      <point x="18.25" y="61.0" />
+    </edge>
+    <edge source="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.battle" target="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.user" relationship="REFERENCES">
+      <point x="0.0" y="-61.0" />
+      <point x="131.66666666666663" y="241.0" />
+      <point x="151.36185897435888" y="241.0" />
+      <point x="-18.625" y="105.0" />
+    </edge>
+    <edge source="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.trade" target="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.user" relationship="REFERENCES">
+      <point x="63.75" y="-72.0" />
+      <point x="663.230128205128" y="687.0" />
+      <point x="597.51875" y="687.0" />
+      <point x="597.51875" y="241.0" />
+      <point x="497.3551282051281" y="241.0" />
+      <point x="497.3551282051281" y="231.0" />
+      <point x="225.86185897435888" y="231.0" />
+      <point x="55.875" y="105.0" />
+    </edge>
+    <edge source="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.trade" target="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.card" relationship="REFERENCES">
+      <point x="-63.75" y="-72.0" />
+      <point x="535.730128205128" y="647.0" />
+      <point x="400.04166666666663" y="647.0" />
+      <point x="91.25" y="61.0" />
+    </edge>
+    <edge source="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.round" target="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.battle" relationship="REFERENCES">
+      <point x="-70.5" y="-72.0" />
+      <point x="124.4801282051281" y="687.0" />
+      <point x="131.66666666666663" y="687.0" />
+      <point x="0.0" y="61.0" />
+    </edge>
+    <edge source="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.card" target="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.package" relationship="REFERENCES">
+      <point x="0.0" y="-61.0" />
+      <point x="0.0" y="39.0" />
+    </edge>
+    <edge source="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.round" target="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.card" relationship="REFERENCES">
+      <point x="-23.5" y="-72.0" />
+      <point x="171.4801282051281" y="677.0" />
+      <point x="217.54166666666663" y="677.0" />
+      <point x="-91.25" y="61.0" />
+    </edge>
+    <edge source="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.stat" target="1a280f01-c1ae-42b0-9bb0-61627c579b8a.TABLE:mtcg.public.user" relationship="REFERENCES">
+      <point x="0.0" y="-94.0" />
+      <point x="519.51875" y="241.0" />
+      <point x="497.3551282051281" y="241.0" />
+      <point x="497.3551282051281" y="231.0" />
+      <point x="225.86185897435888" y="231.0" />
+      <point x="55.875" y="105.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic" zoom="0.6196868008948546" showDependencies="false" x="363.5" y="437.0" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Columns</Category>
+    <Category>Comments</Category>
+    <Category>Key columns</Category>
+    <Category>Virtual foreign keys</Category>
+  </Categories>
+</Diagram>
+
