@@ -2,7 +2,7 @@
 
 ## Design
 Als Datenbank wurde eine PostgreSql DB verwendet. (DB-Creates in *creates.sql* & DB-Struktur in 
-database.uml zu finden)
+*database.uml* zu finden)
 
 Das Projekt ist in 3 Bereiche unterteilt:
 - Controller
